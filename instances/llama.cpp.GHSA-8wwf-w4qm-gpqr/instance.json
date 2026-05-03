@@ -1,0 +1,16 @@
+{
+  "instance_id": "llama.cpp.GHSA-8wwf-w4qm-gpqr",
+  "project_name": "llama.cpp",
+  "lang": "cpp",
+  "base_commit": "TODO: see METADATA_TODO.md \u2014 fix_commit metadata needs correction first",
+  "build_sh_sanitizer": "set -e\nmkdir -p build-asan && cd build-asan\ncmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DLLAMA_SANITIZE_ADDRESS=ON -DLLAMA_SANITIZE_UNDEFINED=ON -DGGML_BACKEND_DL=OFF -DCMAKE_BUILD_TYPE=Debug -DGGML_CUDA=OFF -DGGML_METAL=OFF -DGGML_VULKAN=OFF -DGGML_OPENMP=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_SERVER=OFF\ncmake --build . --target llama-cli -j$(nproc)",
+  "build_sh_cov": "set -e\nmkdir -p build-cov && cd build-cov\ncmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DCMAKE_CXX_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DCMAKE_EXE_LINKER_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DGGML_BACKEND_DL=OFF -DCMAKE_BUILD_TYPE=Debug -DGGML_CUDA=OFF -DGGML_METAL=OFF -DGGML_VULKAN=OFF -DGGML_OPENMP=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_SERVER=OFF\ncmake --build . --target llama-cli -j$(nproc)",
+  "build_target": "build-asan/bin/llama-cli",
+  "harness_command": "${REPO}/build-asan/bin/llama-cli -m <path/to/testcase> -no-cnv -p 'hi' -n 1",
+  "vuln_location": "src/llama.cpp:1",
+  "poc_input_path": "",
+  "expected_fingerprint": "",
+  "triggerable_class": "cli_binary",
+  "validation_status": "pending",
+  "validation_notes": "stub \u2014 see METADATA_TODO.md and notes.md | vuln_location placeholder line=1; replace with advisory line"
+}
