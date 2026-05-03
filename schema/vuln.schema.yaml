@@ -31,11 +31,72 @@ impact: string                 # Observed / potential impact: crash | RCE | data
 
 # --- Patch & PoC ---
 fix_commit: string             # URL or SHA of the fixing commit
+vulnerable_commit: string      # SHA of the (still-vulnerable) commit DrillAgent should checkout & build.
+                               # Default convention: fix_commit^ (the parent of fix_commit). May differ if
+                               # the fix spans multiple commits or had a backport — populate by hand in
+                               # those cases. Tools/scripts/derive_vuln_commit.py auto-fills the default.
 github_advisory: string        # GHSA-xxxx-xxxx-xxxx (if applicable)
 poc_available: bool            # Whether a public PoC exists
 poc_link: string               # Direct URL to PoC code, exploit script, or advisory page containing PoC
 poc_code: string               # Inline PoC code snippet (if short enough to embed; omit if only available via link)
 poc_notes: string              # Notes on PoC availability / location
+poc_source: string             # inline_yaml | advisory_link | gist | huntr | talos | github_issue | none
+                               # Tracks where the ground-truth PoC was sourced from (NOT where in *this*
+                               # bench it lives — that path is recorded in the per-instance
+                               # repro/SOURCE.md). Pure metadata for filtering.
+
+# --- Build / Trigger Recipe (for runnable benchmark) ---
+# These fields drive the per-instance environment and the harness DrillAgent (or any other agent) sees.
+# They are first-class on the vuln yaml so the recipe lives next to the case definition; the per-instance
+# instances/<id>/instance.json mirrors a subset of these for loaders that don't read the yaml directly.
+triggerable_class: string      # cli_binary | python_api | server | library_link
+                               #   cli_binary    — a standalone binary takes a file/arg, crashes on it
+                               #                   (e.g. llama.cpp build/bin/main, whisper-cli, opencv tool)
+                               #   library_link  — link the affected lib + a tiny C/C++ harness driver
+                               #                   that calls the vulnerable API directly
+                               #   python_api    — trigger via Python (TF/PyTorch/ONNX); harness is
+                               #                   a python -c "..." or python script.py
+                               #   server        — must launch a server first then send a network request
+                               #                   (ollama, llama.cpp RPC, ONNX-Runtime web)
+build_sh_sanitizer: string     # Shell snippet (multi-line OK) that, when run from the project repo root
+                               # with ASAN_OPTIONS=use_sigaltstack=0, produces an ASAN-instrumented
+                               # build_target. Should be local-only (no full TF/PyTorch wheel) where
+                               # possible. May source helper scripts in scripts/ of this bench.
+build_sh_cov: string           # Same shape, but produces an llvm-cov instrumented build_target.
+build_target: string           # Path to the artifact (binary or shared lib) RELATIVE to the repo root
+                               # after build_sh_* runs (e.g. "build/bin/llama-rpc-server",
+                               # "bazel-bin/tensorflow/python/_pywrap_tensorflow_internal.so").
+harness_command: string        # CLI template the agent runs to feed a testcase to build_target.
+                               # Use "<path/to/testcase>" as the literal placeholder for the input file.
+                               # Examples:
+                               #   "<repo>/build/bin/whisper-cli -m model.bin -f <path/to/testcase>"
+                               #   "python -c 'import tensorflow as tf; ... open(\"<path/to/testcase>\")'"
+poc_input_path: string         # Path RELATIVE to instances/<id>/repro/ pointing at the canonical PoC
+                               # blob/script that reproduces this vuln (e.g. "poc_advisory.py",
+                               # "crash.wav"). May be empty for no-PoC cases.
+poc_input_kind: string         # file | python_script | http_seq | gguf | wav | jpeg | json | ...
+                               # Hint for harness assembly. file = generic byte blob.
+expected_fingerprint: string   # Multi-line string holding the canonical sanitizer fingerprint (key
+                               # frames + vuln_location-adjacent source lines). Used to auto-decide
+                               # "did the PoV trigger the *intended* vulnerability vs a different bug?"
+                               # Format: free-text but should include enough function names + filename
+                               # that fingerprint comparison can be substring-based.
+
+# --- Vuln Location (for DrillAgent mode 2 / vuln_input_mode='vuln_location') ---
+vuln_location: string          # "<file>:<line>" — points at the vulnerable line/function.
+                               # Should be a path relative to the project repo root.
+
+# --- Validation Status (ground truth for the bench) ---
+validation_status: string      # validated | invalidated_no_poc | invalidated_poc_failed | pending
+                               #   validated              — built env + ran the curated PoC + observed
+                               #                            the expected sanitizer trace
+                               #   invalidated_no_poc     — no public PoC available; env is built but
+                               #                            we could not confirm it triggers
+                               #   invalidated_poc_failed — env is built and a PoC was tried but it
+                               #                            did not trigger / triggered something else
+                               #   pending                — not yet attempted in this bench
+validation_notes: string       # Free-form notes: failure mode, environment requirement, partial repro,
+                               # date last attempted, etc.
 
 # --- Description ---
 description: string            # [required] Detailed technical description of the vulnerability
