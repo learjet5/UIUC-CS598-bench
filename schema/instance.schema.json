@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/learjet5/UIUC-CS598-bench/schema/instance.schema.json",
+  "title": "CS598 Bench — per-instance descriptor",
+  "description": "One file per vulnerability case at instances/<project>.<id>/instance.json. Mirrors the build/trigger fields from projects/<project>/vulns/<id>.yaml so a benchmark loader can consume a single self-contained directory without re-reading the full vuln yaml. Repository paths are NOT recorded explicitly — by convention, sanitizer build lives at <bench_root>/../repos-sanitizer/<project_name>/ and coverage build at <bench_root>/../repos-llvm-cov/<project_name>/.",
+  "type": "object",
+  "required": [
+    "instance_id",
+    "project_name",
+    "lang",
+    "base_commit",
+    "build_sh_sanitizer",
+    "build_sh_cov",
+    "build_target",
+    "harness_command",
+    "vuln_location",
+    "triggerable_class",
+    "validation_status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "instance_id": {
+      "type": "string",
+      "description": "<project_name>.<vuln_id> — globally unique per bench (e.g. 'opencv.CVE-2023-2617', 'llama.cpp.GHSA-vgg9-87g3-85w8').",
+      "pattern": "^[A-Za-z0-9._]+\\.[A-Za-z0-9-]+$"
+    },
+    "project_name": {
+      "type": "string",
+      "description": "Matches a folder under projects/ AND under repos-sanitizer/ / repos-llvm-cov/."
+    },
+    "lang": {
+      "type": "string",
+      "enum": ["c", "cpp", "python", "go", "mixed"],
+      "description": "Primary language of the affected source file (drives some build/harness defaults)."
+    },
+    "base_commit": {
+      "type": "string",
+      "description": "SHA of the *vulnerable* commit to checkout & build. Default-derived as fix_commit^; mirrors the vuln yaml's `vulnerable_commit` field. Loaders should checkout this exact SHA in both sanitizer and coverage clones before running build_sh_*."
+    },
+    "build_sh_sanitizer": {
+      "type": "string",
+      "description": "Shell snippet that produces an ASAN/UBSAN-instrumented binary at build_target. Run from the sanitizer clone root with ASAN_OPTIONS=use_sigaltstack=0 set. Multi-line strings are fine. Should be local-only (no full TF/PyTorch wheel) where possible."
+    },
+    "build_sh_cov": {
+      "type": "string",
+      "description": "Same shape, produces an llvm-cov instrumented binary at build_target. Run from the coverage clone root."
+    },
+    "build_target": {
+      "type": "string",
+      "description": "Path to the artifact (binary or shared lib) RELATIVE to the clone root, after build_sh_* completes (e.g. 'build/bin/whisper-cli', 'build/lib/libopencv_wechat_qrcode.so')."
+    },
+    "harness_command": {
+      "type": "string",
+      "description": "CLI template the agent runs to feed a testcase to build_target. MUST contain the literal placeholder '<path/to/testcase>' which a runner substitutes with the absolute path of the PoC input. Examples:\n  '${REPO}/build/bin/whisper-cli -m ${MODEL} -f <path/to/testcase>'\n  'python -c \"import cv2; cv2.imread(\\\"<path/to/testcase>\\\")\"'\nUse ${REPO} as a placeholder for the repo root if needed; the runner expands it to the appropriate clone path."
+    },
+    "vuln_location": {
+      "type": "string",
+      "description": "'<file>:<line>' relative to the project repo root. Used by DrillAgent mode 2 (vuln_input_mode='vuln_location') as the pivot for VAA/PEA.",
+      "pattern": "^.+:\\d+$"
+    },
+    "expected_fingerprint": {
+      "type": "string",
+      "description": "Multi-line free-text holding the canonical sanitizer fingerprint to compare against on validation runs. Substring matching (case-sensitive) on key frames + the ASAN error type + nearby source lines. Empty if validation_status != validated."
+    },
+    "triggerable_class": {
+      "type": "string",
+      "enum": ["cli_binary", "library_link", "python_api", "server"],
+      "description": "Drives the runner's execution strategy. See vuln.schema.yaml for definitions."
+    },
+    "validation_status": {
+      "type": "string",
+      "enum": ["validated", "invalidated_no_poc", "invalidated_poc_failed", "pending"],
+      "description": "Ground-truth label set after running the curated PoC against the built env. See vuln.schema.yaml::validation_status for the four meanings."
+    }
+  }
+}

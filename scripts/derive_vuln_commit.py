@@ -52,33 +52,49 @@ def extract_sha_from_fix_commit(fix_commit: str) -> str | None:
 
 
 def resolve_via_git(project_id: str, ref: str) -> tuple[str | None, str]:
-    """Try to resolve `ref^` in the local clone. Returns (sha, note)."""
+    """Resolve `ref^` to a real commit in the local clone, with strict validation.
+
+    Order of operations:
+      1. `git cat-file -t <ref>` — bail if ref isn't an object known to the clone.
+      2. `git rev-parse <ref>^{commit}^` — get the parent commit unambiguously
+         (the {commit} disambiguator avoids `2eb60f1...^` being read as a path).
+      3. Verify the resolved SHA is also a real commit object (defensive).
+    """
     repo = REPOS_ROOT / project_id
     if not repo.exists():
         return None, f"clone missing: {repo}"
-    try:
-        out = subprocess.check_output(
-            ["git", "-C", str(repo), "rev-parse", f"{ref}^"],
-            stderr=subprocess.PIPE,
-            text=True,
-            timeout=10,
-        ).strip()
-        return out, "resolved-via-clone"
-    except subprocess.CalledProcessError as e:
-        return None, f"git rev-parse failed: {e.stderr.strip()[:120]}"
-    except subprocess.TimeoutExpired:
-        return None, "git rev-parse timed out"
+
+    def git(*args: str) -> tuple[int, str, str]:
+        p = subprocess.run(
+            ["git", "-C", str(repo), *args],
+            capture_output=True, text=True, timeout=15,
+        )
+        return p.returncode, p.stdout.strip(), p.stderr.strip()
+
+    rc, _, err = git("cat-file", "-t", ref)
+    if rc != 0:
+        return None, f"ref not in clone: {err.splitlines()[0][:120]}"
+
+    rc, sha, err = git("rev-parse", f"{ref}^{{commit}}^")
+    if rc != 0:
+        return None, f"git rev-parse {ref}^ failed: {err.splitlines()[0][:120]}"
+
+    rc, kind, err = git("cat-file", "-t", sha)
+    if rc != 0 or kind != "commit":
+        return None, f"parent {sha} is not a commit: {err.splitlines()[0][:120]}"
+
+    return sha, "resolved-via-clone"
 
 
 def derive(fix_commit: str, project_id: str) -> tuple[str | None, str]:
     """Return (vulnerable_commit_sha, note)."""
     sha = extract_sha_from_fix_commit(fix_commit)
     if sha:
-        # Try to verify + get parent via clone (more accurate). Fall back to "<sha>^" string.
-        resolved, note = resolve_via_git(project_id, sha)
-        if resolved:
-            return resolved, note
-        return f"{sha}^", note + " (using <sha>^ literal)"
+        # Validate via clone. Do NOT silently fall back to '<sha>^' — if the
+        # clone says the SHA isn't real, the SHA is wrong and a human needs to
+        # look at it (yaml metadata bug). Returning the literal would just kick
+        # the can down the road.
+        return resolve_via_git(project_id, sha)
 
     # Maybe it's a short SHA, a truncated SHA, or a tag like "b4057"/"v0.7.0".
     raw = (fix_commit or "").strip().rstrip("/")
