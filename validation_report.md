@@ -12,3 +12,6 @@ validation attempt for one instance.
 | 2026-05-03T06:04:45Z | whisper.cpp.TALOS-2024-1914 | validated | 1 | all fingerprint lines matched (2026-05-03T06:04:45Z) |
 | 2026-05-03T06:06:54Z | llama.cpp.TALOS-2024-1913 | validated | 1 | all fingerprint lines matched (2026-05-03T06:06:54Z) |
 | 2026-05-03T06:11:30Z | whisper.cpp.CVE-2025-14569 | validated | 1 | all fingerprint lines matched (2026-05-03T06:11:30Z) |
+| 2026-05-03T06:17:22Z | opencv.CVE-2019-5063 | validated | 1 | all fingerprint lines matched (2026-05-03T06:17:22Z) |
+| 2026-05-03T06:18:25Z | opencv.CVE-2019-5064 | invalidated_poc_failed | 2 | harness rc=2; fingerprint check false (2026-05-03T06:18:25Z) |
+| 2026-05-03T06:19:54Z | opencv.CVE-2019-5064 | validated | 1 | all fingerprint lines matched (2026-05-03T06:19:54Z) |
