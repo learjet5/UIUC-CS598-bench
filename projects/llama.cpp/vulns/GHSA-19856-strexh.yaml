@@ -1,0 +1,63 @@
+id: GHSA-19856-strexh
+title: "Unbounded resize in gguf_reader::read(std::string&) — memory exhaustion / OOM via attacker-controlled string length"
+project: llama.cpp
+
+# Internal tracking ID — sub-vulnerability bundled into PR #19856
+# ('ggml/gguf : prevent integer overflows'). Companion to CVE-2026-27940
+# (mem_size overflow) and CVE-2026-33298 (ggml_nbytes overflow). No CVE
+# was assigned for this specific path; the upstream PR commit message
+# enumerates it as 'gguf : prevent string exhaustion'.
+
+type: heap-buffer-overflow
+cwe: CWE-770
+cwe_secondary: [CWE-789, CWE-789]
+
+severity: HIGH
+cvss_v3_score: 7.0
+
+affected_versions:
+  - "<= b8145"
+fixed_versions:
+  - "b8146 (2026-02-24, 418dea39)"
+affected_component: "ggml/src/gguf.cpp"
+vulnerable_function: "gguf_reader::read(std::string &)"
+
+trigger: >
+  Supply a GGUF whose KV-string-value declares a length field of
+  SIZE_MAX (or any value larger than the file size). The pre-fix
+  `gguf_reader::read(std::string&)` does
+  `dst.resize(size); fread(dst.data(), 1, size, file)`
+  without checking either against GGUF_MAX_STRING_LENGTH (1 GB) or
+  against the file's remaining bytes. The attacker-controlled
+  `dst.resize(SIZE_MAX)` allocates an absurdly large heap region —
+  ASAN aborts with `allocation-size-too-big`, in production it OOMs
+  the process or memory-pressures the host.
+
+impact: >
+  Process abort under ASAN (clear DoS); on real hosts, OOM-kill or
+  swap-thrashing of the model-loader process; potential service-level
+  DoS for any pipeline that auto-loads attacker-controlled GGUF files.
+
+fix_commit: "https://github.com/ggml-org/llama.cpp/commit/418dea39cea85d3496c8b04a118c3b17f3940ad8"
+vulnerable_commit: "da426cb25031928bcbc0d822bbd5ac3491ed4c13"
+github_advisory: ""
+poc_available: true
+poc_link: "https://github.com/ggml-org/llama.cpp/pull/19856"
+poc_code: |
+  # Craft a GGUF with one KV entry whose value is a string with declared
+  # length SIZE_MAX (no body bytes). See repro/craft_string_exhaustion.py.
+poc_notes: >
+  Sub-fix in PR #19856 adds `if (size > GGUF_MAX_STRING_LENGTH) return false`
+  and a remaining-file-size check inside `gguf_reader::read(std::string&)`.
+  Same fix commit as CVE-2026-27940 / CVE-2026-33298.
+
+description: >
+  GGUF keys and string values are read via `gguf_reader::read(std::string&)`.
+  The pre-fix implementation reads a uint64 size field then immediately
+  calls `dst.resize(size)` — no validation against GGUF_MAX_STRING_LENGTH,
+  no validation against remaining file bytes. An attacker-controlled
+  uint64 size triggers an absurd heap allocation. ASAN catches as
+  allocation-size-too-big.
+
+references:
+  - "https://github.com/ggml-org/llama.cpp/pull/19856"

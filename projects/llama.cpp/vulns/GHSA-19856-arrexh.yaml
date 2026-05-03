@@ -1,0 +1,59 @@
+id: GHSA-19856-arrexh
+title: "Unbounded resize in gguf_reader::read(std::vector&, size_t) — memory exhaustion via attacker-controlled array length"
+project: llama.cpp
+
+# Internal tracking ID — sub-vulnerability bundled into PR #19856
+# ('ggml/gguf : prevent integer overflows'). Companion to
+# CVE-2026-27940 (mem_size overflow), CVE-2026-33298 (ggml_nbytes overflow),
+# and GHSA-19856-strexh (string exhaustion). The upstream PR commit
+# message enumerates this as 'gguf : prevent array elements exhaustion'.
+
+type: heap-buffer-overflow
+cwe: CWE-770
+cwe_secondary: [CWE-789]
+
+severity: HIGH
+cvss_v3_score: 7.0
+
+affected_versions:
+  - "<= b8145"
+fixed_versions:
+  - "b8146 (2026-02-24, 418dea39)"
+affected_component: "ggml/src/gguf.cpp"
+vulnerable_function: "gguf_reader::read(std::vector<T> &, const size_t)"
+
+trigger: >
+  Supply a GGUF whose KV-array-value declares an element count of
+  SIZE_MAX (or any value larger than the file size). The pre-fix
+  template `gguf_reader::read(std::vector<T>&, size_t n)` does
+  `dst.resize(n)` then a per-element fread loop without first checking
+  that `n <= GGUF_MAX_ARRAY_ELEMENTS` or that `n * sizeof(T) <= nbytes_remain()`.
+  ASAN flags the resize attempt as allocation-size-too-big.
+
+impact: >
+  Process abort under ASAN; OOM-kill in production; service-level DoS
+  for any GGUF auto-load pipeline.
+
+fix_commit: "https://github.com/ggml-org/llama.cpp/commit/418dea39cea85d3496c8b04a118c3b17f3940ad8"
+vulnerable_commit: "da426cb25031928bcbc0d822bbd5ac3491ed4c13"
+github_advisory: ""
+poc_available: true
+poc_link: "https://github.com/ggml-org/llama.cpp/pull/19856"
+poc_code: |
+  # GGUF KV with array value: elem_type=UINT32, count=SIZE_MAX, no body.
+  # See repro/craft_array_exhaustion.py.
+poc_notes: >
+  Sub-fix in PR #19856 adds `if (n > GGUF_MAX_ARRAY_ELEMENTS) return false`
+  and remaining-file-size sanity check inside
+  `gguf_reader::read(std::vector<T>&, size_t)`.
+
+description: >
+  GGUF KV array values are deserialised by a templated read function:
+  `bool read(std::vector<T> & dst, const size_t n)`. The pre-fix
+  implementation immediately calls `dst.resize(n)` with attacker-
+  controlled `n` from the file. With `n = SIZE_MAX`, the heap allocator
+  is asked for `SIZE_MAX * sizeof(T)` bytes — ASAN aborts with
+  allocation-size-too-big.
+
+references:
+  - "https://github.com/ggml-org/llama.cpp/pull/19856"
