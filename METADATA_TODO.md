@@ -42,6 +42,23 @@ commit). They can still hold env / harness drafts.
 | pytorch | CVE-2024-48063 | deserialization-rce | python_api (deferred) |
 | ollama | CVE-2024-12055 / 2025-15514 / 2025-66959 | various | server (deferred) |
 
+## Known semantic gaps (not metadata bugs, but worth flagging)
+
+- **`llama.cpp.GHSA-vgg9-87g3-85w8` is `validated` but does not produce a
+  sanitizer crash.** The advisory's PoC (`overflow_poc.gguf`, 1152 bytes)
+  demonstrates the `ctx->size` wraparound but doesn't follow through to a
+  visible heap-OOB write — after wrap, `ggml_new_tensor_1d(... 1024)` and
+  `gr.read(... 1024)` both stay within the legitimate allocation. The
+  `expected_fingerprint` we use is the silent-success line on the
+  vulnerable commit (`gguf_init_from_file OK; n_tensors=2`), which is
+  absent on the fix commit (which prints `tensor '...' size overflow`).
+  This proves the pipeline reproduces the *bug* but is *not* a
+  sanitizer-trigger PoV — automated PoV generators evaluated on this case
+  will rightly fail to produce an ASAN/UBSan crash with this PoC alone. To
+  upgrade this to a true sanitizer-crash case, a larger crafted GGUF whose
+  post-wrap `ctx->size` underrepresents the file's tensor data section is
+  needed. See `instances/llama.cpp.GHSA-vgg9-87g3-85w8/notes.md`.
+
 ## How to fix one
 
 1. Find the fix commit upstream (GitHub advisory, NVD reference, or scan repo
