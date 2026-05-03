@@ -110,7 +110,10 @@ HARNESS="${HARNESS//\$\{REPO\}/${REPO_SAN}}"
 HARNESS="${HARNESS//\$\{POC_DIR\}/${INST_DIR}/repro}"
 
 echo "[validate] running harness: ${HARNESS}"
+# Export REPO / POC_DIR into the harness env too — wrappers like run_rpc_poc.sh
+# reference them via ${REPO:?...} bash parameter expansion.
 ( cd "${REPO_SAN}" && \
+  REPO="${REPO_SAN}" POC_DIR="${INST_DIR}/repro" \
   ASAN_OPTIONS=use_sigaltstack=0:abort_on_error=0:halt_on_error=1:print_summary=1:detect_leaks=0 \
   UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=1 \
   timeout 60 bash -c "${HARNESS}" ) >"${RUN_LOG}" 2>&1
