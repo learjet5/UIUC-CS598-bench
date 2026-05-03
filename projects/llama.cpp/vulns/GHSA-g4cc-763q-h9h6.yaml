@@ -1,0 +1,65 @@
+id: GHSA-g4cc-763q-h9h6
+title: "Heap buffer over-read in llama_vocab::impl::print_info via undersized vocab"
+project: llama.cpp
+
+type: out-of-bounds-read
+cwe: CWE-125
+cwe_secondary: [CWE-129]
+
+severity: MEDIUM
+cvss_v3_score: 4.3
+
+affected_versions:
+  - "< b5536"
+fixed_versions:
+  - "b5536 (2025-06-13, c33fe8b8)"
+affected_component: "src/llama-vocab.cpp"
+vulnerable_function: "llama_vocab::impl::print_info"
+
+trigger: >
+  Load a GGUF model whose tokenizer.ggml.tokens array has fewer entries
+  than the hardcoded special token IDs (e.g. 1 token while default
+  special_bos_id = 1). The pre-fix print_info() executes
+  `id_to_token[special_bos_id].text.c_str()` without bounds checking the
+  index, producing a heap-buffer-over-read past the end of the
+  std::vector backing store.
+
+impact: >
+  Crash (segfault / ASAN abort) or read of uninitialized adjacent heap
+  memory; potential information disclosure depending on heap layout.
+  Local DoS for any process loading attacker-supplied GGUF models.
+
+fix_commit: "https://github.com/ggml-org/llama.cpp/commit/c33fe8b8c4427202706b1434e9fc8ab5752c9cac"
+vulnerable_commit: "ed52f3668e633423054a4eab61bb7efee47025ab"  # parent of c33fe8b8 (the actual fix)
+github_advisory: GHSA-g4cc-763q-h9h6
+poc_available: true
+poc_link: "https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-g4cc-763q-h9h6"
+poc_code: |
+  # Craft a GGUF whose tokenizer.ggml.tokens has only 1 entry; the
+  # default special_bos_id is 1, which is one past the end of id_to_token.
+  # Run via:  llama-cli -m vocab_oob.gguf  (verbose-info path triggers print_info)
+  # See instances/llama.cpp.GHSA-g4cc-763q-h9h6/repro/craft_vocab_oob.py
+  # for the binary-format crafting code.
+poc_notes: >
+  Same fix commit (c33fe8b8) as GHSA-8wwf-w4qm-gpqr (token_to_piece int
+  overflow) — a PR that bundled multiple vocab hardening fixes. This
+  particular CVE-less GHSA has a public PoC referenced in the advisory
+  via Google Drive (gated). The bench-internal craft_vocab_oob.py
+  reconstructs the same trigger condition (vocab.size()=1 +
+  special_bos_id default = 1) from the GGUF binary format spec.
+
+description: >
+  llama.cpp's `llama_vocab::impl::print_info()` formats human-readable
+  info about each special token in the vocabulary. For each special
+  token kind (BOS/EOS/EOT/EOM/UNK/SEP/PAD/MASK and FIM tokens), it does
+  `LLAMA_LOG_INFO("...", id_to_token[special_xxx_id].text.c_str())`.
+  These reads are unbounded: if a model file declares a tiny vocab but
+  doesn't override the special token IDs, those IDs default to small
+  positives (e.g. special_bos_id=1) which can be larger than
+  vocab.size(). The std::vector access then reads past the end of the
+  underlying heap allocation, triggering ASAN heap-buffer-overflow or a
+  segmentation fault.
+
+references:
+  - "https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-g4cc-763q-h9h6"
+  - "https://github.com/ggml-org/llama.cpp/pull/14145"
