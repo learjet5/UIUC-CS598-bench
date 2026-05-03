@@ -11,3 +11,4 @@ validation attempt for one instance.
 | 2026-05-03T06:01:47Z | whisper.cpp.GHSA-ggml-2025-parser | validated | 1 | all fingerprint lines matched (2026-05-03T06:01:47Z) |
 | 2026-05-03T06:04:45Z | whisper.cpp.TALOS-2024-1914 | validated | 1 | all fingerprint lines matched (2026-05-03T06:04:45Z) |
 | 2026-05-03T06:06:54Z | llama.cpp.TALOS-2024-1913 | validated | 1 | all fingerprint lines matched (2026-05-03T06:06:54Z) |
+| 2026-05-03T06:11:30Z | whisper.cpp.CVE-2025-14569 | validated | 1 | all fingerprint lines matched (2026-05-03T06:11:30Z) |
