@@ -24,7 +24,12 @@ impact: >
   Heap buffer overflow; potential arbitrary code execution when loading
   any application that uses the ggml GGUF loading routine.
 
-fix_commit: ""
+fix_commit: "https://github.com/ggml-org/llama.cpp/commit/a4b07c057e927b1c2cee87b51e36d4cd45b85c01"
+vulnerable_commit: "549a1e6cd5b39fe0dc3d4ea5515c65f17797a31e"
+# Note: yaml originally had no fix_commit. The fix is `a4b07c05` (synced from
+# ggml/709, 2024-01-30, "gguf : add input validation, prevent integer
+# overflows") which adds `if (p->n == SIZE_MAX) return false` early exit in
+# gguf_fread_str. Same root cause as whisper.cpp TALOS-2024-1914.
 github_advisory: ""
 poc_available: false
 poc_link: "https://talosintelligence.com/vulnerability_reports/TALOS-2024-1913"

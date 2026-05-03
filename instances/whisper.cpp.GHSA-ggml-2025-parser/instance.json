@@ -1,16 +1,16 @@
 {
   "instance_id": "whisper.cpp.GHSA-ggml-2025-parser",
   "project_name": "whisper.cpp",
-  "lang": "cpp",
-  "base_commit": "TODO: see METADATA_TODO.md \u2014 fix_commit metadata needs correction first",
-  "build_sh_sanitizer": "set -e\nmkdir -p build-asan && cd build-asan\ncmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DGGML_SANITIZE_ADDRESS=ON -DGGML_SANITIZE_UNDEFINED=ON -DGGML_CUDA=OFF -DGGML_METAL=OFF -DGGML_VULKAN=OFF -DGGML_OPENMP=OFF -DCMAKE_BUILD_TYPE=Debug -DWHISPER_BUILD_TESTS=OFF\ncmake --build . --target whisper-cli -j$(nproc)",
-  "build_sh_cov": "set -e\nmkdir -p build-cov && cd build-cov\ncmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DCMAKE_CXX_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DCMAKE_EXE_LINKER_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DGGML_CUDA=OFF -DGGML_METAL=OFF -DGGML_VULKAN=OFF -DGGML_OPENMP=OFF -DCMAKE_BUILD_TYPE=Debug -DWHISPER_BUILD_TESTS=OFF\ncmake --build . --target whisper-cli -j$(nproc)",
-  "build_target": "build-asan/bin/whisper-cli",
-  "harness_command": "${REPO}/build-asan/bin/whisper-cli -m ${POC_DIR}/model.bin -f <path/to/testcase>",
-  "vuln_location": "ggml/src/gguf.cpp:1",
-  "poc_input_path": "TODO: see repro/SOURCE.md",
-  "expected_fingerprint": "",
-  "triggerable_class": "cli_binary",
-  "validation_status": "pending",
-  "validation_notes": "stub \u2014 see METADATA_TODO.md and notes.md | vuln_location placeholder line=1; replace with advisory line"
+  "lang": "c",
+  "base_commit": "8e391fcf3a7582a64f7adf6f95f7e87177d79e6e",
+  "build_sh_sanitizer": "set -e\nmkdir -p build-asan && cd build-asan\ncmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DWHISPER_SANITIZE_ADDRESS=ON -DWHISPER_SANITIZE_UNDEFINED=ON -DCMAKE_BUILD_TYPE=Debug\ncmake --build . --target whisper -j$(nproc)\ncd ..\nclang++ -fsanitize=address,undefined,vptr -g -O0 -I. ${POC_DIR}/harness_gguf_load.c -L build-asan -lwhisper -Wl,-rpath,$PWD/build-asan -o build-asan/bin/harness_gguf_load",
+  "build_sh_cov": "set -e\nmkdir -p build-cov && cd build-cov\ncmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DCMAKE_CXX_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DCMAKE_EXE_LINKER_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DCMAKE_BUILD_TYPE=Debug\ncmake --build . --target whisper -j$(nproc)\ncd ..\nclang++ -fprofile-instr-generate -fcoverage-mapping -g -O0 -I. ${POC_DIR}/harness_gguf_load.c -L build-cov -lwhisper -Wl,-rpath,$PWD/build-cov -o build-cov/bin/harness_gguf_load",
+  "build_target": "build-asan/bin/harness_gguf_load",
+  "harness_command": "${REPO}/build-asan/bin/harness_gguf_load <path/to/testcase>",
+  "vuln_location": "ggml.c:19400",
+  "poc_input_path": "oob_ndims.gguf",
+  "expected_fingerprint": "runtime error: index 5 out of bounds for type 'uint64_t [4]'\nin gguf_init_from_file",
+  "triggerable_class": "library_link",
+  "validation_status": "validated",
+  "validation_notes": "all fingerprint lines matched (2026-05-03T06:01:47Z)"
 }

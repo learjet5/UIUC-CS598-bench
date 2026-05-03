@@ -29,7 +29,14 @@ impact: >
   Out-of-bounds read during model loading; potential crash or information
   disclosure of memory adjacent to the model header buffer.
 
-fix_commit: "Multiple incremental ggml commits"
+fix_commit: "https://github.com/ggml-org/whisper.cpp/commit/8f5220d81fad6db7f221f3d977b15b8b493641f3"
+vulnerable_commit: "8e391fcf3a7582a64f7adf6f95f7e87177d79e6e"
+# Note: yaml originally listed "Multiple incremental ggml commits" — too vague
+# to drive a checkout. The first hardening commit that closes the n_dims-OOB
+# variant is `8f5220d8` (synced from ggml/709, 2024-01-29) which adds
+# `ok && (info->n_dims <= GGML_MAX_DIMS)` and `gguf_tensor_info_sanitize()`.
+# Verified: at parent `8e391fcf3a`, the harness triggers UBSan
+# "index 5 out of bounds for type 'uint64_t [4]'" in gguf_init_from_file.
 github_advisory: ""
 poc_available: true
 poc_link: "https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-vgg9-87g3-85w8"

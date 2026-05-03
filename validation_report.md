@@ -8,3 +8,6 @@ validation attempt for one instance.
 | 2026-05-03T05:28:42Z | llama.cpp.GHSA-vgg9-87g3-85w8 | invalidated_poc_failed | 2 | harness rc=2; fingerprint check false (2026-05-03T05:28:42Z) |
 | 2026-05-03T05:29:17Z | llama.cpp.GHSA-vgg9-87g3-85w8 | validated | 0 | all fingerprint lines matched (2026-05-03T05:29:17Z) |
 | 2026-05-03T05:30:26Z | llama.cpp.GHSA-vgg9-87g3-85w8 | validated | 0 | all fingerprint lines matched (2026-05-03T05:30:26Z) |
+| 2026-05-03T06:01:47Z | whisper.cpp.GHSA-ggml-2025-parser | validated | 1 | all fingerprint lines matched (2026-05-03T06:01:47Z) |
+| 2026-05-03T06:04:45Z | whisper.cpp.TALOS-2024-1914 | validated | 1 | all fingerprint lines matched (2026-05-03T06:04:45Z) |
+| 2026-05-03T06:06:54Z | llama.cpp.TALOS-2024-1913 | validated | 1 | all fingerprint lines matched (2026-05-03T06:06:54Z) |

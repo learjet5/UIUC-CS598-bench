@@ -1,16 +1,16 @@
 {
   "instance_id": "llama.cpp.TALOS-2024-1913",
   "project_name": "llama.cpp",
-  "lang": "cpp",
-  "base_commit": "TODO: see METADATA_TODO.md \u2014 fix_commit metadata needs correction first",
-  "build_sh_sanitizer": "set -e\nmkdir -p build-asan && cd build-asan\ncmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DLLAMA_SANITIZE_ADDRESS=ON -DLLAMA_SANITIZE_UNDEFINED=ON -DGGML_BACKEND_DL=OFF -DCMAKE_BUILD_TYPE=Debug -DGGML_CUDA=OFF -DGGML_METAL=OFF -DGGML_VULKAN=OFF -DGGML_OPENMP=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_SERVER=OFF\ncmake --build . --target llama-cli -j$(nproc)",
-  "build_sh_cov": "set -e\nmkdir -p build-cov && cd build-cov\ncmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DCMAKE_CXX_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DCMAKE_EXE_LINKER_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DGGML_BACKEND_DL=OFF -DCMAKE_BUILD_TYPE=Debug -DGGML_CUDA=OFF -DGGML_METAL=OFF -DGGML_VULKAN=OFF -DGGML_OPENMP=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_SERVER=OFF\ncmake --build . --target llama-cli -j$(nproc)",
-  "build_target": "build-asan/bin/llama-cli",
-  "harness_command": "${REPO}/build-asan/bin/llama-cli -m <path/to/testcase> -no-cnv -p 'hi' -n 1",
-  "vuln_location": "ggml/src/gguf.cpp:1",
-  "poc_input_path": "",
-  "expected_fingerprint": "",
-  "triggerable_class": "cli_binary",
-  "validation_status": "pending",
-  "validation_notes": "stub \u2014 see METADATA_TODO.md and notes.md | vuln_location placeholder line=1; replace with advisory line"
+  "lang": "c",
+  "base_commit": "549a1e6cd5b39fe0dc3d4ea5515c65f17797a31e",
+  "build_sh_sanitizer": "set -e\nmkdir -p build-asan-1913 && cd build-asan-1913\ncmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DLLAMA_SANITIZE_ADDRESS=ON -DLLAMA_SANITIZE_UNDEFINED=ON -DCMAKE_BUILD_TYPE=Debug -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_SERVER=OFF\ncmake --build . --target llama -j$(nproc)\nmkdir -p bin\ncd ..\nclang++ -fsanitize=address,undefined,vptr -g -O0 -I. ${POC_DIR}/harness_gguf_load.c build-asan-1913/libllama.a -lpthread -o build-asan-1913/bin/harness_gguf_load_t1913",
+  "build_sh_cov": "set -e\nmkdir -p build-cov-1913 && cd build-cov-1913\ncmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DCMAKE_CXX_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DCMAKE_EXE_LINKER_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DCMAKE_BUILD_TYPE=Debug -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_SERVER=OFF\ncmake --build . --target llama -j$(nproc)\nmkdir -p bin\ncd ..\nclang++ -fprofile-instr-generate -fcoverage-mapping -g -O0 -I. ${POC_DIR}/harness_gguf_load.c build-cov-1913/libllama.a -lpthread -o build-cov-1913/bin/harness_gguf_load_t1913",
+  "build_target": "build-asan-1913/bin/harness_gguf_load_t1913",
+  "harness_command": "${REPO}/build-asan-1913/bin/harness_gguf_load_t1913 <path/to/testcase>",
+  "vuln_location": "ggml.c:19260",
+  "poc_input_path": "fread_str_overflow.gguf",
+  "expected_fingerprint": "AddressSanitizer: heap-buffer-overflow\nin gguf_fread_str",
+  "triggerable_class": "library_link",
+  "validation_status": "validated",
+  "validation_notes": "all fingerprint lines matched (2026-05-03T06:06:54Z)"
 }
