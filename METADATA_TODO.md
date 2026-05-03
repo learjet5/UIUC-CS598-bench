@@ -21,7 +21,7 @@ commit). They can still hold env / harness drafts.
 | project | id | yaml fix_commit | actual fix (verified upstream) | notes |
 |---|---|---|---|---|
 | llama.cpp | GHSA-vgg9-87g3-85w8 | `b4057` | **`26a48ad69` (PR #14595, 2025-07-09)** | b4057 in yaml resolves to commit `46323fa9` "metal : hide debug messages" — totally unrelated. The real `ctx->size += ggml_nbytes(t)` int-overflow fix was added later when GGUF was refactored into ggml/src/gguf.cpp. Vulnerable commit (parent of fix) = `ffd59e7d18a76459d5c31ba97073c7c9d73cb752`. |
-| llama.cpp | GHSA-8wwf-w4qm-gpqr | `b4455` | _TODO_ | tag `b4455` doesn't exist in repo (jumps `b4404 → b4406 → b4409`). Need to find actual fix commit for vocab token_to_piece overflow. |
+| llama.cpp | GHSA-8wwf-w4qm-gpqr | `b4455` | **`3cfbbdb44`** ("Merge commit from fork — vocab : prevent integer overflow during load", 2025-06-13) | yaml + instance.json now updated. Vulnerable commit = `80709b70a2f87c13ccaf1480b799393109996789`. No public PoC, instance marked `invalidated_no_poc`. |
 | opencv | CVE-2019-5063 | `2eb60f1de4b684c42c46e29aee93c0bbc8b3f96a` | _TODO_ | SHA absent from `opencv/opencv` repo; possibly orphaned by force-push or wrong repo (might be `opencv_contrib`?). Need to find real persistence.cpp fix. |
 | opencv | CVE-2019-5064 | `2eb60f1de4b684c42c46e29aee93c0bbc8b3f96a` | _TODO_ | Same SHA as above, same problem. |
 | whisper.cpp | GHSA-ggml-2025-parser | `Multiple incremental ggml commits` | _TODO_ | Free text instead of SHA. Need to either pick the canonical fix or list a SHA range. |

@@ -24,7 +24,14 @@ impact: >
   Heap buffer overflow during model loading;
   potential arbitrary code execution triggered by opening a malicious .gguf file.
 
-fix_commit: "https://github.com/ggml-org/llama.cpp/commit/b4455"
+fix_commit: "https://github.com/ggml-org/llama.cpp/commit/3cfbbdb44e08fd19429fed6cc85b982a91f0efd5"
+vulnerable_commit: "80709b70a2f87c13ccaf1480b799393109996789"
+# Note: yaml originally listed `b4455` as the fix tag, but that tag doesn't
+# exist (llama.cpp tag list jumps b4404 -> b4406 -> b4409 -> ...). Real fix
+# is `3cfbbdb4` (Merge commit from fork, "vocab : prevent integer overflow
+# during load", 2025-06-13) which adds a GGML_ABORT in token_to_piece's
+# _try_copy when size >= INT32_MAX. Verified via git show — matches yaml's
+# vulnerable_function (llama_vocab::impl::token_to_piece) exactly.
 github_advisory: GHSA-8wwf-w4qm-gpqr
 poc_available: false
 poc_link: "https://github.com/ggml-org/llama.cpp/security/advisories/GHSA-8wwf-w4qm-gpqr"
