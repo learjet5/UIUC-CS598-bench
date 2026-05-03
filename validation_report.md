@@ -22,3 +22,4 @@ validation attempt for one instance.
 | 2026-05-03T07:06:55Z | llama.cpp.CVE-2024-42479 | invalidated_poc_failed | 1 | harness rc=1; fingerprint check false (2026-05-03T07:06:55Z) |
 | 2026-05-03T07:21:00Z | llama.cpp.CVE-2024-42477 | validated | 0 | all fingerprint lines matched (2026-05-03T07:21:00Z) |
 | 2026-05-03T07:21:02Z | llama.cpp.CVE-2024-42479 | validated | 0 | all fingerprint lines matched (2026-05-03T07:21:02Z) |
+| 2026-05-03T07:41:04Z | llama.cpp.CVE-2026-33298 | validated | 2 | all fingerprint lines matched (2026-05-03T07:41:04Z) |
