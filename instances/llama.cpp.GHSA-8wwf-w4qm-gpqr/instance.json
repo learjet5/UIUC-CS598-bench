@@ -12,5 +12,5 @@
   "expected_fingerprint": "",
   "triggerable_class": "cli_binary",
   "validation_status": "invalidated_no_poc",
-  "validation_notes": "no public PoC (advisory describes trigger condition GGUF token_text.size() > INT32_MAX but ships no exploit). base_commit verified via git show 3cfbbdb44 \u2014 fix matches yaml's vulnerable_function (token_to_piece). vuln_location placeholder line=1, replace with advisory line"
+  "validation_notes": "no public PoC (advisory describes trigger condition GGUF token_text.size() > INT32_MAX but ships no exploit). base_commit verified via git show 3cfbbdb44 \u2014 fix matches yaml vulnerable_function (token_to_piece). vuln_location placeholder line=1, replace with advisory line"
 }

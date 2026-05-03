@@ -26,14 +26,32 @@ fi
 
 # Pull fields we need with python (jq might not be installed; python3.12 + json
 # is universal).
-read -r PROJECT_NAME BASE_COMMIT BUILD_TARGET TRIG_CLASS POC_INPUT_PATH < <(
+read -r PROJECT_NAME BASE_COMMIT BUILD_TARGET TRIG_CLASS POC_INPUT_PATH STATUS_PRE < <(
     python3.12 - <<EOF
 import json, sys
 d = json.loads(open("${INST_JSON}").read())
 print(d["project_name"], d["base_commit"], d["build_target"],
-      d["triggerable_class"], d.get("poc_input_path", ""))
+      d["triggerable_class"], d.get("poc_input_path", "") or "_",
+      d.get("validation_status", ""))
 EOF
 )
+# Translate placeholder back
+[ "${POC_INPUT_PATH}" = "_" ] && POC_INPUT_PATH=""
+
+# Skip cases that explicitly have no PoC or whose recipe still has TODO markers.
+# These should not be reset to `pending` by re-running validate.
+SKIP_REASON=""
+if [ "${STATUS_PRE}" = "invalidated_no_poc" ]; then
+    SKIP_REASON="status=invalidated_no_poc (no public PoC; env recipe stays as-is)"
+elif [ -z "${POC_INPUT_PATH}" ]; then
+    SKIP_REASON="poc_input_path is empty (no PoC artefact)"
+elif printf '%s' "${BASE_COMMIT}${BUILD_TARGET}" | grep -qE '^TODO|TODO_'; then
+    SKIP_REASON="base_commit or build_target is still a TODO marker"
+fi
+if [ -n "${SKIP_REASON}" ]; then
+    echo "[validate] SKIP ${INSTANCE_ID}: ${SKIP_REASON}"
+    exit 0
+fi
 
 REPO_SAN="${BENCH_ROOT}/../repos-sanitizer/${PROJECT_NAME}"
 if [ ! -d "${REPO_SAN}" ]; then

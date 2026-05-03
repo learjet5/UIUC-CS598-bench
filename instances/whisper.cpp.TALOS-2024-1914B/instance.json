@@ -12,5 +12,5 @@
   "expected_fingerprint": "",
   "triggerable_class": "cli_binary",
   "validation_status": "invalidated_no_poc",
-  "validation_notes": "no public PoC and no specific fix_commit recorded. yaml describes a 'fixed-size stack-allocated samples slice buffer' but the current whisper_full_parallel uses std::vector<float> + pointer arithmetic — code has been refactored since the report. Trigger requires a >30 min audio file plus specific -p / segment_size that produces an int overflow in the n_samples_per_processor computation; not synthesised here. Env builds fine via build_sh_sanitizer (master)."
+  "validation_notes": "no public PoC and no specific fix_commit recorded. yaml describes fixed-size stack-allocated samples slice buffer but current whisper_full_parallel uses std::vector<float> + pointer arithmetic \u2014 code refactored. Trigger requires >30 min audio + specific -p that produces int overflow in n_samples_per_processor; not synthesised here. Env builds at master."
 }

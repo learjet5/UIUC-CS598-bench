@@ -12,5 +12,5 @@
   "expected_fingerprint": "gguf_init_from_file OK; n_tensors=2",
   "triggerable_class": "library_link",
   "validation_status": "validated",
-  "validation_notes": "all fingerprint lines matched (2026-05-03T05:30:26Z)"
+  "validation_notes": "all fingerprint lines matched (2026-05-03T06:31:59Z)"
 }

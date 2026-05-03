@@ -15,3 +15,5 @@ validation attempt for one instance.
 | 2026-05-03T06:17:22Z | opencv.CVE-2019-5063 | validated | 1 | all fingerprint lines matched (2026-05-03T06:17:22Z) |
 | 2026-05-03T06:18:25Z | opencv.CVE-2019-5064 | invalidated_poc_failed | 2 | harness rc=2; fingerprint check false (2026-05-03T06:18:25Z) |
 | 2026-05-03T06:19:54Z | opencv.CVE-2019-5064 | validated | 1 | all fingerprint lines matched (2026-05-03T06:19:54Z) |
+| 2026-05-03T06:30:47Z | llama.cpp.GHSA-8wwf-w4qm-gpqr | pending | 1 | harness returned rc=1; expected_fingerprint empty, can't auto-validate (2026-05-03T06:30:47Z) |
+| 2026-05-03T06:31:59Z | llama.cpp.GHSA-vgg9-87g3-85w8 | validated | 0 | all fingerprint lines matched (2026-05-03T06:31:59Z) |
