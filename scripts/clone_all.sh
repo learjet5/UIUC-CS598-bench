@@ -31,13 +31,14 @@ declare -A PROJECTS=(
   [pytorch]="https://github.com/pytorch/pytorch"
   [tensorflow]="https://github.com/tensorflow/tensorflow"
   [ollama]="https://github.com/ollama/ollama"
+  [ncnn]="https://github.com/Tencent/ncnn"
 )
 
 # First-tier = projects that own at least one cli_binary or library_link case
 # in the first round. opencv_contrib piggy-backs on opencv (needed for two
 # wechat_qrcode vulns). pytorch/onnxruntime are heavy and only have 1 case each
 # in first round; defer until smoke completes.
-FIRST_TIER=(llama.cpp whisper.cpp opencv opencv_contrib)
+FIRST_TIER=(llama.cpp whisper.cpp opencv opencv_contrib ncnn)
 
 if [ $# -eq 0 ]; then
   TARGETS=("${FIRST_TIER[@]}")

@@ -12,5 +12,5 @@
   "expected_fingerprint": "terminate called after throwing an instance of 'std::length_error'",
   "triggerable_class": "library_link",
   "validation_status": "validated",
-  "validation_notes": "all fingerprint lines matched (2026-05-03T09:21:45Z)"
+  "validation_notes": "all fingerprint lines matched (2026-05-03T19:55:47Z)"
 }

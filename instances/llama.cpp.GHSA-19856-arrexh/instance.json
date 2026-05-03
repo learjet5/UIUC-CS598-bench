@@ -12,5 +12,5 @@
   "expected_fingerprint": "gguf_read_emplace_helper: encountered length_error while reading value for key",
   "triggerable_class": "library_link",
   "validation_status": "validated",
-  "validation_notes": "all fingerprint lines matched (2026-05-03T09:23:22Z)"
+  "validation_notes": "all fingerprint lines matched (2026-05-03T19:55:35Z)"
 }

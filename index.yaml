@@ -1,8 +1,12 @@
-# UIUC-CS589 Vulnerability Benchmark — Master Index
-# Last updated: 2026-04-07
+# UIUC-CS598 Vulnerability Benchmark — Master Index
+# Last updated: 2026-05-03
 #
-# 7 AI-ecosystem C/C++ projects, 35 vulnerability entries total.
-# See schema/ for field definitions.
+# 8 AI-ecosystem C/C++ projects, 45 vulnerability entries total.
+# Phase-1 catalogue (2026-04-07) was 7 projects · 35 vulns; Phase-2/3
+# additions (2026-05) bring in 7 llama.cpp entries (RPC + GGUF parser),
+# 2 ncnn entries (the 8th project), and 1 tensorflow TFLite entry.
+# See schema/ for field definitions; runnable bench coverage is in
+# README.md "Ready instances".
 
 projects:
   - id: tensorflow
@@ -10,7 +14,7 @@ projects:
     repo: https://github.com/tensorflow/tensorflow
     category: AI Training Framework
     maintainer: Google
-    vuln_count: 8
+    vuln_count: 9
     vulns:
       - id: CVE-2022-21740
         type: heap-buffer-overflow
@@ -44,6 +48,10 @@ projects:
         type: out-of-bounds-read
         severity: HIGH
         title: "Heap OOB read in QuantizeAndDequantize with mismatched axis"
+      - id: ISSUE-115308
+        type: out-of-bounds-read
+        severity: HIGH
+        title: "Heap OOB read in tflite::FlatBufferModel::BuildFromBuffer via unverified root-table offset"
 
   - id: pytorch
     name: PyTorch
@@ -74,24 +82,52 @@ projects:
     repo: https://github.com/ggml-org/llama.cpp
     category: LLM Inference Engine
     maintainer: ggml-org
-    vuln_count: 5
+    vuln_count: 12
     vulns:
       - id: CVE-2024-42477
         type: out-of-bounds-read
         severity: HIGH
         title: "Global buffer overflow in ggml_type_size via untrusted rpc_tensor.type"
+      - id: CVE-2024-42478
+        type: out-of-bounds-read
+        severity: HIGH
+        title: "Read-what-where via unsafe data pointer in rpc_tensor (GET_TENSOR)"
       - id: CVE-2024-42479
         type: write-what-where
         severity: CRITICAL
         title: "Write-what-where via unsafe data pointer in rpc_tensor"
-      - id: GHSA-vgg9-87g3-85w8
+      - id: CVE-2025-52566
+        type: heap-buffer-overflow
+        severity: HIGH
+        title: "Heap buffer overflow in llama_vocab::tokenize via signed/unsigned cast on res.size() > INT32_MAX"
+      - id: CVE-2026-27940
         type: integer-overflow
         severity: HIGH
-        title: "Integer overflow in GGUF parser leads to heap OOB read/write"
+        title: "Integer overflow in GGUF tensor mem_size via crafted ne[] dimensions"
+      - id: CVE-2026-33298
+        type: integer-overflow
+        severity: HIGH
+        title: "Integer overflow in ggml_nbytes via crafted ne[] dimensions during GGUF load"
+      - id: GHSA-19856-arrexh
+        type: integer-overflow
+        severity: MEDIUM
+        title: "GGUF KV array length-overflow leads to std::length_error abort"
+      - id: GHSA-19856-strexh
+        type: integer-overflow
+        severity: MEDIUM
+        title: "GGUF KV string length-overflow leads to std::length_error abort"
       - id: GHSA-8wwf-w4qm-gpqr
         type: heap-buffer-overflow
         severity: HIGH
         title: "Buffer overflow in vocabulary loading via malicious GGUF model"
+      - id: GHSA-g4cc-763q-h9h6
+        type: out-of-bounds-read
+        severity: HIGH
+        title: "Heap OOB read in llama_vocab::print_info via vocab.size()=1 minimal GGUF"
+      - id: GHSA-vgg9-87g3-85w8
+        type: integer-overflow
+        severity: HIGH
+        title: "Integer overflow in GGUF parser leads to heap OOB read/write"
       - id: TALOS-2024-1913
         type: heap-buffer-overflow
         severity: HIGH
@@ -173,6 +209,22 @@ projects:
         severity: HIGH
         title: "Stack buffer overflow in whisper_full_parallel via oversized audio segment"
 
+  - id: ncnn
+    name: ncnn
+    repo: https://github.com/Tencent/ncnn
+    category: Mobile Inference Engine
+    maintainer: Tencent
+    vuln_count: 2
+    vulns:
+      - id: ISSUE-3503
+        type: out-of-bounds-write
+        severity: MEDIUM
+        title: "Heap write OOB / SIGSEGV in ncnn::Net::load_param via malformed PARAM file"
+      - id: ISSUE-6214-darknet
+        type: null-ptr-deref
+        severity: MEDIUM
+        title: "darknet2ncnn config parser SEGV / memory leak on malformed .cfg"
+
   - id: ollama
     name: ollama
     repo: https://github.com/ollama/ollama
@@ -202,32 +254,35 @@ projects:
         title: "Panic DoS via unchecked length in readGGUFString GGUF decoder"
 
 # Summary statistics
-# Last updated: 2026-04-07
+# Last updated: 2026-05-03
 stats:
-  total_projects: 7
-  total_vulns: 35
+  total_projects: 8
+  total_vulns: 45
+  # Auto-derivable from `projects/<proj>/vulns/*.yaml` — keep in sync.
+  # Note: bench-runnable state (validated / invalidated_no_poc / pending) is
+  # tracked separately in `validation_summary.csv` and the README's "Ready
+  # instances" table — currently 25 / 28.
   by_type:
-    heap-buffer-overflow: 12
-    out-of-bounds-read: 6
-    out-of-bounds-write: 2
-    use-after-free: 2
+    heap-buffer-overflow: 18
+    out-of-bounds-read: 9
+    out-of-bounds-write: 3
+    null-ptr-deref: 4    # 3 yaml-tagged + 1 ncnn ISSUE-6214 (null-pointer-dereference)
     integer-overflow: 2
-    write-what-where: 1
-    deserialization-rce: 1
     path-traversal: 2
+    use-after-free: 2
+    write-what-where: 1
     arbitrary-file-write: 1
     memory-leak: 1
-    null-ptr-deref: 3
+    deserialization-rce: 1
     stack-buffer-overflow: 1
-    other: 1
   by_severity:
     CRITICAL: 3
-    HIGH: 25
-    MEDIUM: 7
+    HIGH: 32
+    MEDIUM: 10
     LOW: 0
-  with_cve: 26
-  without_cve: 9
-  poc_available: 30
-  poc_with_inline_code: 18
-  poc_link_only: 12
-  no_poc: 5
+  with_cve: 29
+  without_cve: 16
+  poc_available: 39
+  poc_with_inline_code: 28
+  poc_link_only: 11
+  no_poc: 6

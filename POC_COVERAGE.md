@@ -1,6 +1,15 @@
 # PoC Coverage Summary
 
-**7 projects · 35 vulnerabilities · 30 with PoC · 5 without PoC**
+> **Stale snapshot — last refreshed 2026-04-07 against the Phase-1 catalogue (35 vulns).**
+> Phase-2/3 added 10 vulns (7 llama.cpp, 2 ncnn, 1 tensorflow ISSUE-115308)
+> and validated several previously "no public PoC" cases via bench-internal
+> PoC synthesis. Per-vuln editorial state is in `projects/<proj>/vulns/*.yaml`;
+> bench-runnable state (validated / invalidated / pending) is in
+> `README.md` "Ready instances" + `validation_summary.csv`. The per-project
+> tables below are *not* re-derived; only the No-PoC table at the bottom
+> has been corrected.
+
+**Phase-1 catalogue: 7 projects · 35 vulnerabilities · 30 with PoC · 5 without PoC**
 
 Legend:
 - **Inline code** — `poc_code` field contains a runnable snippet in the YAML
@@ -110,16 +119,34 @@ All TensorFlow entries have inline Python code embedded directly in the YAML fil
 
 ---
 
-## No-PoC Entries (5)
+## No-PoC Entries — current (2026-05-03)
 
-| ID | Project | Reason |
+After Phase-2/3 the bench synthesises its own PoCs for several cases that
+were originally "no PoC" (TALOS-2024-1913 / 1914, etc.).  The remaining
+truly-no-PoC instances (env-only, marked `invalidated_no_poc` in the bench)
+are:
+
+| Instance | Project | Reason |
 |----|---------|--------|
-| GHSA-8wwf-w4qm-gpqr | llama.cpp | Requires >2 GB GGUF vocabulary token; impractical to distribute |
-| TALOS-2024-1913 | llama.cpp | Talos advisory behind HTTP 403; no third-party PoC released |
-| CVE-2023-2618 | opencv | Memory-leak only (CWE-401); no researcher released reproducer |
-| TALOS-2024-1914 | whisper.cpp | Talos advisory behind HTTP 403; no third-party PoC released |
-| TALOS-2024-1914B | whisper.cpp | Provisional entry; requires >30 min audio + specific config |
+| `llama.cpp.GHSA-8wwf-w4qm-gpqr` | llama.cpp | Requires GGUF vocab token > INT32_MAX bytes; impractical to distribute |
+| `llama.cpp.CVE-2024-42478` | llama.cpp | Bench-internal RPC PoC didn't match ALLOC_BUFFER reply offset; env reused from CVE-2024-42477 |
+| `llama.cpp.CVE-2025-52566` | llama.cpp | Needs jinja template producing > INT32_MAX tokens |
+| `opencv.CVE-2023-2618` | opencv | Memory-leak only (CWE-401); advisory describes class only, no reproducer |
+| `whisper.cpp.TALOS-2024-1914B` | whisper.cpp | `whisper_full_parallel` refactored to `std::vector`; requires >30 min audio + specific config |
+
+Cases originally listed as no-PoC that are now **validated** with
+bench-synthesised PoCs:
+
+| Instance | What changed |
+|---|---|
+| `llama.cpp.TALOS-2024-1913` | bench ships `craft_fread_str_overflow.py` → ASAN heap-buffer-overflow in `gguf_fread_str` |
+| `whisper.cpp.TALOS-2024-1914` | same crafted GGUF (cross-applicable from shared ggml code path) |
+
+For Phase-2/3 entries (ncnn / tensorflow.ISSUE-115308 / onnx.CVE-2022-25882 /
+onnx.CVE-2024-27318), see `README.md` "Ready instances" — all have inline
+PoCs sourced from the upstream issue tracker / GHSA.
 
 ---
 
-*Last updated: 2026-04-07*
+*Last refreshed: 2026-05-03 (Phase-1 tables retained; banner + No-PoC
+table updated for current state).*

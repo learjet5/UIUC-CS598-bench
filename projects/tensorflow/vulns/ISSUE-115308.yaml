@@ -1,0 +1,71 @@
+id: ISSUE-115308
+title: "Heap-buffer-overflow in tflite::FlatBufferModel::BuildFromBuffer via unverified root-table offset"
+project: tensorflow
+
+type: out-of-bounds-read
+cwe: CWE-125
+cwe_secondary: [CWE-20]
+
+severity: HIGH
+cvss_v3_score: 7.5
+cvss_v3_vector: "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:N/A:H"
+
+affected_versions:
+  - "v2.18.0"
+  - "<= master @ 462d61f24b4 (still open as of 2026-04-06)"
+fixed_versions: []
+affected_component: "tensorflow/lite/core/model_builder.h (BuildFromAllocation / ValidateModelBuffers)"
+vulnerable_function: "tflite::FlatBufferModelBase::BuildFromAllocation"
+
+trigger: >
+  TFLite's `BuildFromBuffer` / `BuildFromFile` constructors invoke
+  `BuildFromAllocation` which calls `ValidateModelBuffers` *before*
+  running a `flatbuffers::Verifier`.  The validator dereferences the
+  FlatBuffer root-table offset (first 4 bytes of the file) without
+  bounds-checking it against the buffer length.  A model with the
+  root-table offset pointing beyond the buffer end (e.g.
+  `\x18\x00\x00\x00TFL3` — 8 bytes total, root offset = 0x18) makes
+  `flatbuffers::ReadScalar<int>()` read 4 bytes from
+  `buffer_base + 0x18` — fully OOB heap memory.
+
+impact: >
+  Heap-buffer-overflow read in any TFLite consumer that calls the
+  unverified `BuildFromBuffer` / `BuildFromFile` API on attacker
+  controlled bytes.  The OOB-read distance is steerable from 0 to 64KB+
+  via the root-offset bytes, providing a partial info-disclosure
+  primitive.  The official TensorFlow examples (`label_image.cc`,
+  `benchmark_tflite_model.cc`) use the unverified API.
+
+fix_commit: ""
+vulnerable_commit: "6550e4bd"
+github_advisory: ""
+poc_available: true
+poc_link: "https://github.com/tensorflow/tensorflow/issues/115308"
+poc_code: |
+  # 8-byte crafted .tflite — root_offset=0x18 + flatbuf id "TFL3"
+  import struct
+  with open('crash.tflite', 'wb') as f:
+      f.write(struct.pack('<I', 0x18) + b'TFL3')
+poc_notes: >
+  Inline 8-byte PoC in the issue body since 2026-04-06.  Bench ships
+  `craft_crash_tflite.py` that emits the same file and a standalone
+  C++ harness `harness_tflite_load.cpp` that calls
+  `tflite::FlatBufferModel::BuildFromBuffer` on the loaded bytes
+  (mirroring the libFuzzer harness referenced in the original ASAN
+  trace).  Expected ASAN signature: `heap-buffer-overflow ... READ of
+  size 4 ... in flatbuffers::ReadScalar` rooted at
+  `tflite::Model::buffers` -> `ValidateModelBuffers` ->
+  `BuildFromAllocation`.
+
+description: >
+  TFLite's flatbuf-backed model loader trusts the root-table offset
+  encoded in the first 4 bytes of every .tflite file.  Without an
+  upfront `flatbuffers::Verifier` pass, a single 4-byte tweak can
+  redirect the validator's first heap read up to 64KB past the buffer
+  boundary.  Even though the TFLite docs call out
+  `VerifyAndBuildFromBuffer` as the safe option, the upstream TF
+  example code uses the unsafe variant.  Reported via Google VRP and
+  publicly disclosed in tracker #115308.
+
+references:
+  - "https://github.com/tensorflow/tensorflow/issues/115308"

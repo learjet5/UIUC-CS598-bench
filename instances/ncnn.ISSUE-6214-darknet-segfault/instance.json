@@ -1,0 +1,16 @@
+{
+  "instance_id": "ncnn.ISSUE-6214-darknet-segfault",
+  "project_name": "ncnn",
+  "lang": "cpp",
+  "base_commit": "d0d50631179e380e587fb188338f5683d2c93275",
+  "build_sh_sanitizer": "set -e\nmkdir -p build-asan-darknet-6214/bin\nclang++ -fsanitize=address,undefined -g -O0 -std=c++14 \\\n  ${POC_DIR}/harness_darknet_cfg.cpp \\\n  -o build-asan-darknet-6214/bin/harness_darknet_cfg",
+  "build_sh_cov": "set -e\nmkdir -p build-cov-darknet-6214/bin\nclang++ -fprofile-instr-generate -fcoverage-mapping -g -O0 -std=c++14 \\\n  ${POC_DIR}/harness_darknet_cfg.cpp \\\n  -o build-cov-darknet-6214/bin/harness_darknet_cfg",
+  "build_target": "build-asan-darknet-6214/bin/harness_darknet_cfg",
+  "harness_command": "${REPO}/build-asan-darknet-6214/bin/harness_darknet_cfg <path/to/testcase>",
+  "vuln_location": "tools/darknet/darknet2ncnn.cpp:244",
+  "poc_input_path": "poc_segfault.bin",
+  "expected_fingerprint": "runtime error: member access within null pointer of type 'Section'\nload_cfg",
+  "triggerable_class": "library_link",
+  "validation_status": "validated",
+  "validation_notes": "all fingerprint lines matched (2026-05-03T19:57:36Z)"
+}

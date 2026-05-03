@@ -1,0 +1,16 @@
+{
+  "instance_id": "ncnn.ISSUE-3503-load-param",
+  "project_name": "ncnn",
+  "lang": "cpp",
+  "base_commit": "d0d50631179e380e587fb188338f5683d2c93275",
+  "build_sh_sanitizer": "set -e\nmkdir -p build-asan-3503 && cd build-asan-3503\ncmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS='-fsanitize=address,undefined -g -O0' -DCMAKE_CXX_FLAGS='-fsanitize=address,undefined -g -O0' -DCMAKE_EXE_LINKER_FLAGS='-fsanitize=address,undefined' -DCMAKE_SHARED_LINKER_FLAGS='-fsanitize=address,undefined' -DNCNN_BUILD_TESTS=OFF -DNCNN_BUILD_EXAMPLES=OFF -DNCNN_BUILD_BENCHMARK=OFF -DNCNN_VULKAN=OFF -DNCNN_OPENMP=OFF -DNCNN_PYTHON=OFF -DNCNN_BUILD_TOOLS=ON\ncmake --build . --target ncnnoptimize -j$(nproc)",
+  "build_sh_cov": "set -e\nmkdir -p build-cov-3503 && cd build-cov-3503\ncmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS='-fprofile-instr-generate -fcoverage-mapping -g' -DCMAKE_CXX_FLAGS='-fprofile-instr-generate -fcoverage-mapping -g' -DCMAKE_EXE_LINKER_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DNCNN_BUILD_TESTS=OFF -DNCNN_BUILD_EXAMPLES=OFF -DNCNN_BUILD_BENCHMARK=OFF -DNCNN_VULKAN=OFF -DNCNN_OPENMP=OFF -DNCNN_PYTHON=OFF -DNCNN_BUILD_TOOLS=ON\ncmake --build . --target ncnnoptimize -j$(nproc)",
+  "build_target": "build-asan-3503/tools/ncnnoptimize",
+  "harness_command": "${REPO}/build-asan-3503/tools/ncnnoptimize ${POC_DIR}/crash.param ${POC_DIR}/dummy.bin /tmp/out_3503.param /tmp/out_3503.bin 0",
+  "vuln_location": "src/net.cpp:1191",
+  "poc_input_path": "crash.param",
+  "expected_fingerprint": "find_blob_index_by_name conv1 failed\nAddressSanitizer: SEGV\nncnn::Net::load_param",
+  "triggerable_class": "cli_binary",
+  "validation_status": "validated",
+  "validation_notes": "all fingerprint lines matched (2026-05-03T19:57:34Z)"
+}

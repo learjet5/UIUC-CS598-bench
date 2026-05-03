@@ -1,10 +1,17 @@
 # Metadata TODO — fix_commit corrections
 
-Generated: 2026-05-03 (last updated after Phase-1 instance batch processing)
+Generated: 2026-05-03 (Phase-1 batch) · Light-updated: 2026-05-03 (post Phase-3)
 Tooling: `python3.12 scripts/audit_fix_commits.py`
 
 This file tracks `fix_commit` field issues found while building the runnable
 benchmark environment.
+
+> **Note on shallow clones**: the audit reports BAD for any SHA the upstream
+> shallow `--depth 1` clone doesn't have. Several of those (e.g. opencv
+> 2019-5063 / 5064 / 2023-2617 / 2023-2618; llama.cpp TALOS-2024-1913) have
+> verified-real fix_commits (see Resolved table below); the BAD verdict is
+> a clone-depth artefact, not a metadata bug. The `EMPTY` entries are the
+> ones that genuinely lack a fix_commit upstream.
 
 Categories:
 
@@ -34,18 +41,36 @@ commit). They can still hold env / harness drafts.
 | opencv | CVE-2023-2617 | `.../commit/...` placeholder | **`ccc27724`** ("fix(wechat_qrcode): Init nBytes after the count value is determined / Avoid null pointer exception" #3480, 2023-04-26) | env builds; PoC fetched but harness in-flight (see status below) |
 | whisper.cpp | TALOS-2024-1914B | empty | _stays empty_ — yaml description doesn't match current `whisper_full_parallel` (refactored to std::vector); no public PoC | env builds; `invalidated_no_poc` |
 
-## Still open (heavy / second-tier)
+## Resolved during Phase-2/3 (2026-05-03)
+
+Cases that the previous version of this doc listed as still-open but have
+since been built into validated bench instances:
+
+| project | id | new status | how |
+|---|---|---|---|
+| llama.cpp | CVE-2024-42477 | **validated** | Phase-2 RPC server harness `run_rpc_poc.sh` + pwntools PoC; ASAN global-buffer-overflow in `ggml_blck_size`. fix_commit `b72942fa` (b3561) recorded. |
+| llama.cpp | CVE-2024-42479 | **validated** | Same harness chain; ASAN write-what-where assertion. Same fix_commit. |
+| llama.cpp | CVE-2024-42478 | invalidated_no_poc | Env / harness reused; bench-internal PoC offset didn't match RPC ALLOC_BUFFER reply. |
+| llama.cpp | CVE-2025-52566 / CVE-2026-27940 / CVE-2026-33298 / GHSA-19856-{arr,str}exh / GHSA-g4cc-763q-h9h6 | mostly **validated** | Phase-2 reused the `harness_gguf_load.c` library_link pattern across 6 GGUF-parser cases. |
+| onnx | CVE-2022-25882 | **validated** | Phase-3 `craft_traversal_model.py` + `run_traversal.py` against onnx 1.12.0; leaks `/etc/passwd`. |
+| onnx | CVE-2024-27318 | **validated** | Same harness against onnx 1.15.0 (lstrip-bypass disclosure). Fix in 1.16.0 PR #6051 (`66b7fb6`). |
+| ncnn | ISSUE-3503 | **validated** (new entry) | cli_binary on `ncnnoptimize`, inline 4-line .param PoC; never patched upstream — `vulnerable_commit = master HEAD d0d50631`. |
+| ncnn | ISSUE-6214-darknet | **validated** (new entry) | Standalone harness adapted from upstream issue zip; UBSan null-deref in `load_cfg`. Same vulnerable_commit. |
+| tensorflow | ISSUE-115308 | **validated** (new entry) | TFLite `BuildFromBuffer` heap-buffer-overflow on 8-byte crafted .tflite; v2.18.0. Fix open upstream — no fix_commit yet. |
+
+## Still open (heavy / not-yet-built)
 
 | project | id | reason still open |
 |---|---|---|
 | opencv | CVE-2025-53644 | JPEG2000 / J2K UAF needs a 5-call decode sequence with two crafted datasets; advisory has embedded C++ but synthesising J2K marker streams is non-trivial. Marked `pending`. |
 | onnx | ORT-2024-HIDDENLAYER | onnxruntime not yet cloned; multi-hour build; second-tier per TASK.md. Marked `pending`. |
 | pytorch | CVE-2024-31583 | pytorch not yet cloned; multi-hour mobile build; second-tier per TASK.md. Marked `pending`. |
-| onnx | CVE-2022-25882 / 2024-27318 / 2024-5187 | python_api class — second-tier scope (out of Phase-1 first-tier). |
-| pytorch | CVE-2024-31580 / 31584 / 48063 | python_api class — second-tier scope. |
-| tensorflow | (8 entries) | python_api class — second-tier scope. |
-| ollama | (5 entries) | server class — third-tier scope. |
-| llama.cpp | CVE-2024-42477 / 42479 | server class (RPC) — third-tier scope. |
+| onnx | CVE-2024-5187 | tar-extraction arbitrary file write in `download_model_with_test_data`; not yet built (different surface from 25882/27318 — needs malicious tar PoC and runtime that exercises the helper). |
+| pytorch | CVE-2024-31580 / 31584 / 48063 | python_api class — needs pytorch clone (heavy build), no instance scaffolded yet. |
+| tensorflow | 8 yaml entries (CVE-2022-21740 / 29210 / 35939 / 41910 / 23-25664 / 23-25668 / GHSA-pg59-2f92-5cph / GHSA-v6r6-84gr-92rm) | python_api class — kernel-level overflows; would need a TF Python build. ISSUE-115308 (the C++ TFLite case) is the only TF instance built so far. |
+| ollama | 5 yaml entries | server class + Go panic crash model; sanitizer-trace fingerprint approach doesn't directly apply. No instances built. |
+| ncnn | ISSUE-3503 / ISSUE-6214-darknet | `fix_commit` field is empty (both still open in upstream tracker as of master `d0d50631`). Not a bug — the vuln *is* unfixed. yaml's `vulnerable_commit` correctly pins to that commit. |
+| tensorflow | ISSUE-115308 | Same — open in upstream tracker, no fix_commit yet. yaml is correct. |
 
 ## Known semantic gaps (not metadata bugs, but worth flagging)
 

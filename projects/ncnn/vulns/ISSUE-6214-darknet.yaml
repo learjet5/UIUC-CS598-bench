@@ -1,0 +1,59 @@
+id: ISSUE-6214-darknet
+title: "darknet2ncnn config parser SEGV / memory leak on malformed .cfg"
+project: ncnn
+
+type: null-pointer-dereference
+cwe: CWE-476
+cwe_secondary: [CWE-401]
+
+severity: MEDIUM
+cvss_v3_score: 5.5
+cvss_v3_vector: "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H"
+
+affected_versions:
+  - "<= master @ d0d50631 (still open as of 2026-05)"
+fixed_versions: []
+affected_component: "tools/darknet/darknet2ncnn.cpp (load_cfg + parse_cfg)"
+vulnerable_function: "load_cfg / parse_cfg"
+
+trigger: >
+  darknet2ncnn's load_cfg() / parse_cfg() routines do not robustly
+  validate the input .cfg structure: missing section headers,
+  unclosed values, or specific formatting glitches lead to either
+  null-pointer dereference (SEGV in load_cfg) or memory-leak
+  conditions (Section objects allocated but never freed because
+  parsing aborts mid-way).  Issue #6214 attaches both a SEGV PoC
+  and a leak PoC.
+
+impact: >
+  Conversion-tool crash on attacker-supplied .cfg files; potential
+  DoS for build pipelines that auto-convert third-party darknet
+  models.  No memory-safety impact at runtime since darknet2ncnn is
+  a one-shot conversion tool.
+
+fix_commit: ""
+vulnerable_commit: "d0d50631179e380e587fb188338f5683d2c93275"
+github_advisory: ""
+poc_available: true
+poc_link: "https://github.com/Tencent/ncnn/issues/6214"
+poc_notes: >
+  PoC inputs (`input_darknet_seg_fault_lf` ~72 bytes, `input_darknet_leak`
+  5 bytes) shipped in the issue's attached zip alongside the fuzz
+  harness source `darknet_cfg.cc` (a single-file extraction of
+  darknet2ncnn's parsing code with a libFuzzer entrypoint).  Bench
+  rewraps the libFuzzer harness as a standalone main() that takes
+  argv[1] as the input file path, links against libncnn.a, and
+  triggers `parse_cfg` with the supplied bytes.
+
+description: >
+  ISP RAS' fuzz campaign (2025-07) on the ncnn tool suite found two
+  bugs in darknet2ncnn's config-file parser: a SEGV reachable via
+  `load_cfg` on malformed cfg payloads, and a memory leak in
+  `parse_cfg` when section parsing exits early.  Both are open in
+  the upstream tracker as of 2026-05.  The bench prefers the SEGV
+  variant for sanitizer-trace fingerprinting (LeakSanitizer reports
+  don't fit DrillAgent's PoVGen crash model as cleanly).
+
+references:
+  - "https://github.com/Tencent/ncnn/issues/6214"
+  - "https://github.com/user-attachments/files/21435805/ncnn_report.zip"

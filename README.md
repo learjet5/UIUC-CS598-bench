@@ -189,13 +189,69 @@ bash scripts/validate_all.sh
 
 ## Status
 
-The benchmark is under active construction. As of 2026-05-03:
+The benchmark is under active construction. As of 2026-05-03 (late):
 
-- 35 vulnerabilities catalogued (editorial layer complete).
-- 14 first-tier instances scaffolded (`cli_binary` + `library_link`); 1
-  fully `validated`, 1 `invalidated_no_poc`, 12 `pending`.
-- The remaining 21 cases (`python_api`, `server`) are scheduled for
-  subsequent rounds and require the heavier projects (TensorFlow, PyTorch,
-  ONNX Runtime, ollama) to be cloned and instrumented.
+- **35 vulnerabilities catalogued** (editorial layer complete) plus 5
+  new instances built directly from upstream issue trackers (ncnn ×2,
+  tensorflow ×1, onnx ×2) for project breadth.
+- **28 instances scaffolded**, of which **20 `validated`** (live ASAN /
+  UBSan / abort traces matched), **5 `invalidated_no_poc`** (env builds
+  cleanly but no public PoC available), and **3 `pending`** (heavy
+  builds deferred — onnxruntime, opencv-1, pytorch).
+- **Project coverage** of *ready* (validated + no_poc) instances spans
+  **6 of 7 catalogued projects + 1 added**: llama.cpp ×12, whisper.cpp
+  ×4, opencv ×4, ncnn ×2, onnx ×2, tensorflow ×1.  ollama remains
+  uncovered; pytorch / onnxruntime have one pending each.
+- **Trigger-class diversity** of validated cases: 7 `cli_binary`,
+  10 `library_link`, 2 `python_api`, 1 `server` (3 RPC reused from
+  llama.cpp's harness chain).
+- Sanitizer fingerprint diversity: ASAN heap/global/stack-buffer-overflow,
+  ASAN allocation-size-too-big, ASAN bad-free, UBSan signed-conv /
+  null-deref / pointer-overflow, std::length_error abort, RPC server
+  assertion, and (for python_api class) string-match on leaked file
+  contents.
+
+### Ready instances (25 / 28)
+
+`validated` = bench locally reproduced the canonical sanitizer / abort
+trace. `invalidated_no_poc` = env builds cleanly but no public PoC
+exists; build_sh + harness + vuln_location are usable for tools that
+generate their own PoVs from `vuln_location` alone. `pending` instances
+(heavy builds deferred) are excluded from the table; their editorial
+yaml under `projects/<proj>/vulns/` is retained as future work.
+
+| project | instance_id | class | status | fingerprint hint |
+|---|---|---|---|---|
+| llama.cpp | `llama.cpp.CVE-2024-42477` | server | validated | ASAN global-buffer-overflow in `ggml_blck_size` via RPC `rpc_server::deserialize_tensor` |
+| llama.cpp | `llama.cpp.CVE-2024-42479` | server | validated | RPC `Assertion 'ne % ggml_blck_size(type) == 0' failed` |
+| llama.cpp | `llama.cpp.CVE-2026-27940` | library_link | validated | ASAN allocation-size-too-big in `posix_memalign` from `ggml_aligned_malloc` |
+| llama.cpp | `llama.cpp.CVE-2026-33298` | library_link | validated | `failed to read tensor data binary blob` (nbytes wraparound) |
+| llama.cpp | `llama.cpp.GHSA-19856-arrexh` | library_link | validated | `gguf_read_emplace_helper: encountered length_error while reading value for key` |
+| llama.cpp | `llama.cpp.GHSA-19856-strexh` | library_link | validated | `terminate called after throwing an instance of std::length_error` |
+| llama.cpp | `llama.cpp.GHSA-g4cc-763q-h9h6` | cli_binary | validated | ASAN heap-buffer-overflow in `llama_vocab` print_info → id_to_token |
+| llama.cpp | `llama.cpp.GHSA-vgg9-87g3-85w8` | library_link | validated | wrap-around behavioural check (`gguf_init_from_file OK; n_tensors=2`) — concept PoV; see `notes.md` |
+| llama.cpp | `llama.cpp.TALOS-2024-1913` | library_link | validated | ASAN heap-buffer-overflow in `gguf_fread_str` |
+| llama.cpp | `llama.cpp.CVE-2024-42478` | server | invalidated_no_poc | env ready; bench-internal PoC offset didn't match RPC ALLOC_BUFFER reply |
+| llama.cpp | `llama.cpp.CVE-2025-52566` | cli_binary | invalidated_no_poc | env ready; PoC needs jinja template producing > INT32_MAX tokens |
+| llama.cpp | `llama.cpp.GHSA-8wwf-w4qm-gpqr` | cli_binary | invalidated_no_poc | env ready; advisory describes trigger but ships no exploit |
+| ncnn | `ncnn.ISSUE-3503-load-param` | cli_binary | validated | ASAN SEGV in `ncnn::Net::load_param` after `find_blob_index_by_name conv1 failed` |
+| ncnn | `ncnn.ISSUE-6214-darknet-segfault` | library_link | validated | UBSan null-deref `member access within null pointer of type 'Section'` in `load_cfg` |
+| onnx | `onnx.CVE-2022-25882` | python_api | validated | `LEAK_DETECTED: /etc/passwd contents read` (onnx 1.12.0) |
+| onnx | `onnx.CVE-2024-27318` | python_api | validated | same exploit on onnx 1.15.0 (lstrip-bypass disclosure) |
+| opencv | `opencv.CVE-2019-5063` | library_link | validated | ASAN heap-buffer-overflow in `__asan_memcpy` from `createJSONParser` |
+| opencv | `opencv.CVE-2019-5064` | library_link | validated | ASAN heap-buffer-overflow in `__asan_memcpy` (XML parseValue / unknown entity) |
+| opencv | `opencv.CVE-2023-2617` | library_link | validated | UBSan null reference binding in `wechat_qrcode/zxing/common/array.hpp:41` |
+| opencv | `opencv.CVE-2023-2618` | library_link | invalidated_no_poc | env ready; advisory describes wechat_qrcode `decodeHanziSegment` leak class only |
+| tensorflow | `tensorflow.ISSUE-115308-flatbuf-oob` | library_link | validated | ASAN heap-buffer-overflow in `flatbuffers::ReadScalar` → `Model::buffers` → `ValidateModelBuffers` → `BuildFromAllocation` |
+| whisper.cpp | `whisper.cpp.CVE-2025-14569` | library_link | validated | ASAN bad-free (`free on address which was not malloc()-ed`) in `ma_decoder_init_file` |
+| whisper.cpp | `whisper.cpp.GHSA-ggml-2025-parser` | library_link | validated | UBSan `index 5 out of bounds for type 'uint64_t [4]'` in `gguf_init_from_file` |
+| whisper.cpp | `whisper.cpp.TALOS-2024-1914` | library_link | validated | ASAN heap-buffer-overflow in `gguf_fread_str` |
+| whisper.cpp | `whisper.cpp.TALOS-2024-1914B` | cli_binary | invalidated_no_poc | env ready; whisper_full_parallel refactored, no compatible PoC; needs >30 min audio + specific `-p` |
+
+Pending (excluded from the table): `onnx.ORT-2024-HIDDENLAYER`,
+`opencv.CVE-2025-53644`, `pytorch.CVE-2024-31583`. Each retains its
+editorial yaml under `projects/<project>/vulns/`; build/harness
+artefacts will be added when scope permits.
+
 - Known editorial gaps in `fix_commit` metadata are tracked in
   [`METADATA_TODO.md`](METADATA_TODO.md).

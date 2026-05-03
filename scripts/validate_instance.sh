@@ -65,18 +65,24 @@ DATE_NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 echo "[validate] instance=${INSTANCE_ID} project=${PROJECT_NAME} base=${BASE_COMMIT} class=${TRIG_CLASS}"
 
-# 1) Checkout the vulnerable commit
-( cd "${REPO_SAN}" && git checkout -q "${BASE_COMMIT}" ) || {
-    echo "FAIL  checkout of ${BASE_COMMIT} in ${REPO_SAN}"
-    python3.12 -c "
+# 1) Checkout the vulnerable commit. Skip for python_api or any project
+# whose REPO_SAN dir isn't actually a git checkout (placeholder dir for
+# Python-only / pip-resolved bench instances).
+if [ "${TRIG_CLASS}" = "python_api" ] || [ ! -d "${REPO_SAN}/.git" ]; then
+    echo "[validate] skipping git checkout (class=${TRIG_CLASS}, .git=$( [ -d "${REPO_SAN}/.git" ] && echo yes || echo no ))"
+else
+    ( cd "${REPO_SAN}" && git checkout -q "${BASE_COMMIT}" ) || {
+        echo "FAIL  checkout of ${BASE_COMMIT} in ${REPO_SAN}"
+        python3.12 -c "
 import json, sys
 p='${INST_JSON}'; d=json.loads(open(p).read())
 d['validation_status']='invalidated_poc_failed'
 d['validation_notes']='checkout ${BASE_COMMIT} failed (${DATE_NOW})'
 open(p,'w').write(json.dumps(d, indent=2)+'\n')
 "
-    exit 3
-}
+        exit 3
+    }
+fi
 
 # 2) Run build_sh_sanitizer (pulled from instance.json) in repo
 BUILD_LOG="${LOG_DIR}/build.log"

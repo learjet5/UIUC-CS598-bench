@@ -12,5 +12,5 @@
   "expected_fingerprint": "runtime error: index 5 out of bounds for type 'uint64_t [4]'\nin gguf_init_from_file",
   "triggerable_class": "library_link",
   "validation_status": "validated",
-  "validation_notes": "all fingerprint lines matched (2026-05-03T06:01:47Z)"
+  "validation_notes": "all fingerprint lines matched (2026-05-03T20:03:16Z)"
 }

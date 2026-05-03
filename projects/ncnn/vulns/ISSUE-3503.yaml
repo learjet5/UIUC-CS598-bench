@@ -1,0 +1,71 @@
+id: ISSUE-3503
+title: "Heap write OOB / SIGSEGV in ncnn::Net::load_param via malformed PARAM file"
+project: ncnn
+
+type: out-of-bounds-write
+cwe: CWE-787
+cwe_secondary: [CWE-125, CWE-20]
+
+severity: MEDIUM
+cvss_v3_score: 6.5
+cvss_v3_vector: "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:H/A:H"
+
+affected_versions:
+  - "<= master @ d0d50631 (still open as of 2026-05)"
+fixed_versions: []
+affected_component: "src/net.cpp (ncnn::Net::load_param)"
+vulnerable_function: "ncnn::Net::load_param"
+
+trigger: >
+  ncnn loads PARAM text files (network topology) via Net::load_param.  The
+  parser reads `bottom_count` and `top_count` from each layer line, then
+  attempts to resolve each blob name against an internal name->index map
+  using `find_blob_index_by_name`.  When a layer references a blob name
+  that is not yet defined (in this PoC, `BBBBBBBB` for the Pooling
+  layer's bottom), the lookup returns -1 (not yet bound), but the parser
+  proceeds to use that index to write the blob into a fixed-size buffer,
+  yielding either a SIGSEGV (negative index dereferenced as size_t) or a
+  controlled heap write where the attacker-supplied bytes (here the
+  ASCII `B` = 0x42) appear in the destination operand of the resulting
+  memmove.  The crash report from the original fuzz run shows
+  rcx=0x4242424242424242 at the failing memmove, indicating attacker
+  control over the source value.
+
+impact: >
+  Memory corruption during PARAM parsing in ncnnoptimize / any user of
+  Net::load_param.  Practical impact: denial-of-service plus a controllable
+  write primitive on attacker-supplied model files.
+
+fix_commit: ""
+vulnerable_commit: "d0d50631179e380e587fb188338f5683d2c93275"
+github_advisory: ""
+poc_available: true
+poc_link: "https://github.com/Tencent/ncnn/issues/3503"
+poc_code: |
+  # 4-line crash.param (ASCII text):
+  # 7767517
+  # 75 3
+  # Input            data             0 1 data 0=227 1=227 2=3
+  # ReLU             relu_conv1       1 1 conv1 conv1_relu_conv1 0=0.000000
+  # Pooling          pool1            1 1 conv1_relu_conv1 BBBBBBBB 0=0 1=3 2=2 3=0 4=1
+poc_notes: >
+  PoC inline in the GitHub issue body since 2022-01-14 and still
+  reproduces against current master.  The original report invokes
+  ncnnoptimize directly: `ncnnoptimize crash.param fake.bin out.param
+  out.bin 0`.  Ground-truth crash trace has SIGSEGV at
+  __memmove_avx_unaligned_erms within ncnn::Net::load_param.  Under
+  ASAN the same input is expected to produce
+  AddressSanitizer: SEGV on unknown address (or heap-buffer-overflow,
+  depending on whether the negative index reaches a valid heap region).
+
+description: >
+  Long-standing memory-corruption bug in ncnn::Net::load_param's blob
+  name resolution: a layer that references a not-yet-defined blob via
+  `bottom` causes the parser to compute an invalid blob index and then
+  write to memory using that index.  Reported via fuzz-testing of the
+  ncnnoptimize binary; never patched.  Selected for the bench as a
+  cli_binary-class case because the trigger only requires a 4-line
+  text param file fed to a stock ncnn tool.
+
+references:
+  - "https://github.com/Tencent/ncnn/issues/3503"
