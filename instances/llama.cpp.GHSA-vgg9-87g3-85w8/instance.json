@@ -1,0 +1,16 @@
+{
+  "instance_id": "llama.cpp.GHSA-vgg9-87g3-85w8",
+  "project_name": "llama.cpp",
+  "lang": "cpp",
+  "base_commit": "ffd59e7d18a76459d5c31ba97073c7c9d73cb752",
+  "build_sh_sanitizer": "set -e\nmkdir -p build-asan\ncd build-asan\ncmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DLLAMA_SANITIZE_ADDRESS=ON -DLLAMA_SANITIZE_UNDEFINED=ON -DGGML_BACKEND_DL=OFF -DCMAKE_BUILD_TYPE=Debug -DGGML_CUDA=OFF -DGGML_METAL=OFF -DGGML_VULKAN=OFF -DGGML_OPENMP=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_SERVER=OFF\ncmake --build . --target ggml ggml-base ggml-cpu -j$(nproc)\nclang++ -fsanitize=address,undefined -g -O0 \\\n  -I ../ggml/include \\\n  ${POC_DIR}/harness_gguf_load.c \\\n  -L bin -lggml -lggml-base \\\n  -Wl,-rpath,$PWD/bin \\\n  -o bin/harness_gguf_load",
+  "build_sh_cov": "set -e\nmkdir -p build-cov\ncd build-cov\ncmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DCMAKE_CXX_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DCMAKE_EXE_LINKER_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DGGML_BACKEND_DL=OFF -DCMAKE_BUILD_TYPE=Debug -DGGML_CUDA=OFF -DGGML_METAL=OFF -DGGML_VULKAN=OFF -DGGML_OPENMP=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_SERVER=OFF\ncmake --build . --target ggml ggml-base ggml-cpu -j$(nproc)\nclang++ -fprofile-instr-generate -fcoverage-mapping -g -O0 \\\n  -I ../ggml/include \\\n  ${POC_DIR}/harness_gguf_load.c \\\n  -L bin -lggml -lggml-base \\\n  -Wl,-rpath,$PWD/bin \\\n  -o bin/harness_gguf_load_cov",
+  "build_target": "build-asan/bin/harness_gguf_load",
+  "harness_command": "${REPO}/build-asan/bin/harness_gguf_load <path/to/testcase>",
+  "vuln_location": "ggml/src/gguf.cpp:634",
+  "poc_input_path": "overflow_poc.gguf",
+  "expected_fingerprint": "gguf_init_from_file OK; n_tensors=2",
+  "triggerable_class": "library_link",
+  "validation_status": "validated",
+  "validation_notes": "all fingerprint lines matched (2026-05-03T05:30:26Z)"
+}

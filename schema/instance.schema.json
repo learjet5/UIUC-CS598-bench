@@ -15,7 +15,8 @@
     "harness_command",
     "vuln_location",
     "triggerable_class",
-    "validation_status"
+    "validation_status",
+    "poc_input_path"
   ],
   "additionalProperties": false,
   "properties": {
@@ -62,6 +63,10 @@
       "type": "string",
       "description": "Multi-line free-text holding the canonical sanitizer fingerprint to compare against on validation runs. Substring matching (case-sensitive) on key frames + the ASAN error type + nearby source lines. Empty if validation_status != validated."
     },
+    "poc_input_path": {
+      "type": "string",
+      "description": "Path RELATIVE to instances/<id>/repro/ pointing at the canonical PoC blob/script that reproduces this vuln (e.g. 'poc_advisory.py', 'overflow_poc.gguf'). Empty string allowed for no-PoC cases (validation_status='invalidated_no_poc')."
+    },
     "triggerable_class": {
       "type": "string",
       "enum": ["cli_binary", "library_link", "python_api", "server"],
@@ -71,6 +76,10 @@
       "type": "string",
       "enum": ["validated", "invalidated_no_poc", "invalidated_poc_failed", "pending"],
       "description": "Ground-truth label set after running the curated PoC against the built env. See vuln.schema.yaml::validation_status for the four meanings."
+    },
+    "validation_notes": {
+      "type": "string",
+      "description": "Free-form notes set by scripts/validate_instance.sh: failure mode, environment requirement, partial repro, last-attempted timestamp, etc."
     }
   }
 }

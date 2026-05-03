@@ -21,3 +21,24 @@ notes: >
   backend, whose rpc_tensor structure trusts client-supplied data and
   pointer values, enabling write-what-where primitives.  All 2024 CVEs
   are well-documented with public PoC scripts.
+
+# --- Build prerequisites (for runnable benchmark) ---
+build:
+  toolchain: ["clang", "clang++", "cmake>=3.14"]
+  apt_packages: ["libcurl4-openssl-dev"]
+  recommended_cmake_flags: |
+    -DGGML_BACKEND_DL=OFF
+    -DGGML_CUDA=OFF
+    -DGGML_METAL=OFF
+    -DGGML_VULKAN=OFF
+    -DGGML_OPENMP=OFF
+    -DLLAMA_BUILD_TESTS=OFF
+    -DLLAMA_BUILD_SERVER=OFF
+  sanitizer_cmake_flags: |
+    -DLLAMA_SANITIZE_ADDRESS=ON
+    -DLLAMA_SANITIZE_UNDEFINED=ON
+    -DCMAKE_BUILD_TYPE=Debug
+  notes: >
+    On clang-11 host: ASAN_OPTIONS=use_sigaltstack=0 is required at runtime.
+    For library_link cases, only the ggml/ggml-base/ggml-cpu targets are
+    needed (build time ~5 min); skip llama-cli, server, tests.
