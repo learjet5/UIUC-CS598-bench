@@ -24,3 +24,4 @@ validation attempt for one instance.
 | 2026-05-03T07:21:02Z | llama.cpp.CVE-2024-42479 | validated | 0 | all fingerprint lines matched (2026-05-03T07:21:02Z) |
 | 2026-05-03T07:41:04Z | llama.cpp.CVE-2026-33298 | validated | 2 | all fingerprint lines matched (2026-05-03T07:41:04Z) |
 | 2026-05-03T08:13:51Z | llama.cpp.GHSA-g4cc-763q-h9h6 | validated | 1 | all fingerprint lines matched (2026-05-03T08:13:51Z) |
+| 2026-05-03T08:47:40Z | llama.cpp.CVE-2026-27940 | validated | 1 | all fingerprint lines matched (2026-05-03T08:47:40Z) |
