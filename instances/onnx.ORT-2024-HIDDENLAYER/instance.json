@@ -1,16 +1,16 @@
 {
   "instance_id": "onnx.ORT-2024-HIDDENLAYER",
-  "project_name": "onnx",
+  "project_name": "onnxruntime",
   "lang": "cpp",
-  "base_commit": "TODO: see METADATA_TODO.md \u2014 fix_commit metadata needs correction first",
-  "build_sh_sanitizer": "TODO: onnxruntime cmake build with sanitizers",
-  "build_sh_cov": "TODO",
+  "base_commit": "TODO_pending_clone_onnxruntime",
+  "build_sh_sanitizer": "TODO: bash scripts/clone_all.sh onnxruntime then build with --use_address_sanitizer (multi-hour build, requires CMake >=3.26 + protobuf + abseil + ~30GB disk).",
+  "build_sh_cov": "TODO: same as sanitizer with -fprofile-instr-generate -fcoverage-mapping",
   "build_target": "TODO",
-  "harness_command": "TODO: small C++ harness linking onnxruntime",
-  "vuln_location": "src/TODO.cpp:1",
-  "poc_input_path": "TODO: see repro/SOURCE.md",
+  "harness_command": "TODO: small C++ harness using onnxruntime CXX API to call Ort::Session() on a crafted ONNX model with an unterminated string attribute",
+  "vuln_location": "onnxruntime/core/common/common.cc:1",
+  "poc_input_path": "",
   "expected_fingerprint": "",
   "triggerable_class": "library_link",
   "validation_status": "pending",
-  "validation_notes": "stub \u2014 see METADATA_TODO.md and notes.md | vuln_location placeholder line=1; replace with advisory line"
+  "validation_notes": "Heavy build deferred. onnxruntime NOT cloned — needs `bash scripts/clone_all.sh onnxruntime` first. Per-task plan from TASK.md scopes onnx to a later round (the original first-tier was opencv/llama.cpp/whisper.cpp; onnx + pytorch + tensorflow + ollama are second-tier). yaml's inline poc_code (Python protobuf script generating a malicious ONNX with an attribute string lacking null terminator) is sufficient once env is built. HiddenLayer advisory: https://hiddenlayer.com/sai-security-advisory/2024-02-onnx/. No specific upstream fix_commit recorded; would need to find ORT's hardening of the ONNX_ASSERTM helper."
 }
