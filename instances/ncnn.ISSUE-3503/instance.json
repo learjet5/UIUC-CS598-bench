@@ -1,5 +1,5 @@
 {
-  "instance_id": "ncnn.ISSUE-3503-load-param",
+  "instance_id": "ncnn.ISSUE-3503",
   "project_name": "ncnn",
   "lang": "cpp",
   "base_commit": "d0d50631179e380e587fb188338f5683d2c93275",

@@ -234,15 +234,15 @@ yaml under `projects/<proj>/vulns/` is retained as future work.
 | llama.cpp | `llama.cpp.CVE-2024-42478` | server | invalidated_no_poc | env ready; bench-internal PoC offset didn't match RPC ALLOC_BUFFER reply |
 | llama.cpp | `llama.cpp.CVE-2025-52566` | cli_binary | invalidated_no_poc | env ready; PoC needs jinja template producing > INT32_MAX tokens |
 | llama.cpp | `llama.cpp.GHSA-8wwf-w4qm-gpqr` | cli_binary | invalidated_no_poc | env ready; advisory describes trigger but ships no exploit |
-| ncnn | `ncnn.ISSUE-3503-load-param` | cli_binary | validated | ASAN SEGV in `ncnn::Net::load_param` after `find_blob_index_by_name conv1 failed` |
-| ncnn | `ncnn.ISSUE-6214-darknet-segfault` | library_link | validated | UBSan null-deref `member access within null pointer of type 'Section'` in `load_cfg` |
+| ncnn | `ncnn.ISSUE-3503` | cli_binary | validated | ASAN SEGV in `ncnn::Net::load_param` after `find_blob_index_by_name conv1 failed` |
+| ncnn | `ncnn.ISSUE-6214-darknet` | library_link | validated | UBSan null-deref `member access within null pointer of type 'Section'` in `load_cfg` |
 | onnx | `onnx.CVE-2022-25882` | python_api | validated | `LEAK_DETECTED: /etc/passwd contents read` (onnx 1.12.0) |
 | onnx | `onnx.CVE-2024-27318` | python_api | validated | same exploit on onnx 1.15.0 (lstrip-bypass disclosure) |
 | opencv | `opencv.CVE-2019-5063` | library_link | validated | ASAN heap-buffer-overflow in `__asan_memcpy` from `createJSONParser` |
 | opencv | `opencv.CVE-2019-5064` | library_link | validated | ASAN heap-buffer-overflow in `__asan_memcpy` (XML parseValue / unknown entity) |
 | opencv | `opencv.CVE-2023-2617` | library_link | validated | UBSan null reference binding in `wechat_qrcode/zxing/common/array.hpp:41` |
 | opencv | `opencv.CVE-2023-2618` | library_link | invalidated_no_poc | env ready; advisory describes wechat_qrcode `decodeHanziSegment` leak class only |
-| tensorflow | `tensorflow.ISSUE-115308-flatbuf-oob` | library_link | validated | ASAN heap-buffer-overflow in `flatbuffers::ReadScalar` → `Model::buffers` → `ValidateModelBuffers` → `BuildFromAllocation` |
+| tensorflow | `tensorflow.ISSUE-115308` | library_link | validated | ASAN heap-buffer-overflow in `flatbuffers::ReadScalar` → `Model::buffers` → `ValidateModelBuffers` → `BuildFromAllocation` |
 | whisper.cpp | `whisper.cpp.CVE-2025-14569` | library_link | validated | ASAN bad-free (`free on address which was not malloc()-ed`) in `ma_decoder_init_file` |
 | whisper.cpp | `whisper.cpp.GHSA-ggml-2025-parser` | library_link | validated | UBSan `index 5 out of bounds for type 'uint64_t [4]'` in `gguf_init_from_file` |
 | whisper.cpp | `whisper.cpp.TALOS-2024-1914` | library_link | validated | ASAN heap-buffer-overflow in `gguf_fread_str` |
