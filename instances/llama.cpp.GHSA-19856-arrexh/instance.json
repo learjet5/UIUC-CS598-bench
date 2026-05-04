@@ -4,7 +4,7 @@
   "lang": "cpp",
   "base_commit": "da426cb25031928bcbc0d822bbd5ac3491ed4c13",
   "build_sh_sanitizer": "set -e\nmkdir -p build-asan-3p4r && cd build-asan-3p4r\ncmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DLLAMA_SANITIZE_ADDRESS=ON -DLLAMA_SANITIZE_UNDEFINED=ON -DGGML_BACKEND_DL=OFF -DCMAKE_BUILD_TYPE=Debug -DGGML_CUDA=OFF -DGGML_METAL=OFF -DGGML_VULKAN=OFF -DGGML_OPENMP=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_SERVER=OFF\ncmake --build . --target ggml ggml-base ggml-cpu -j$(nproc)\nclang++ -fsanitize=address,undefined,vptr -g -O0 -I ../ggml/include ${POC_DIR}/harness_gguf_load.c -L bin -lggml -lggml-base -Wl,-rpath,$PWD/bin -o bin/harness_gguf_load",
-  "build_sh_cov": "TODO: same as sanitizer with -fprofile-instr-generate -fcoverage-mapping",
+  "build_sh_cov": "set -e\nmkdir -p build-cov-3p4r && cd build-cov-3p4r\ncmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DCMAKE_CXX_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DCMAKE_EXE_LINKER_FLAGS='-fprofile-instr-generate -fcoverage-mapping' -DGGML_BACKEND_DL=OFF -DCMAKE_BUILD_TYPE=Debug -DGGML_CUDA=OFF -DGGML_METAL=OFF -DGGML_VULKAN=OFF -DGGML_OPENMP=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_SERVER=OFF\ncmake --build . --target ggml ggml-base ggml-cpu -j$(nproc)\nclang++ -fprofile-instr-generate -fcoverage-mapping -g -O0 -I ../ggml/include ${POC_DIR}/harness_gguf_load.c -L bin -lggml -lggml-base -Wl,-rpath,$PWD/bin -o bin/harness_gguf_load",
   "build_target": "build-asan-3p4r/bin/harness_gguf_load",
   "harness_command": "${REPO}/build-asan-3p4r/bin/harness_gguf_load <path/to/testcase>",
   "vuln_location": "ggml/src/gguf.cpp:294",
