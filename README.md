@@ -1,7 +1,8 @@
-# UIUC-CS598-bench
+# SEC4AI-bench for UIUC CS598 Course
 
 A vulnerability benchmark for **C/C++ memory-safety bugs in the AI software
-ecosystem**, built as the course project for UIUC CS598.
+ecosystem**, built as the course project for **UIUC CS598 (Software
+Engineering for GenAI)**.
 
 The benchmark targets the kinds of vulnerabilities that automated PoV
 (proof-of-vulnerability) generators and security agents must reason about in
@@ -28,35 +29,11 @@ Each entry in the benchmark satisfies all of:
   with strong academic/community traction; long-tail or hobby projects are
   excluded.
 
-## Current contents (2026-05-03)
-
-**7 projects · 35 vulnerabilities** across 12 distinct bug classes.
-
-| project | vulns | category |
-|---|---|---|
-| TensorFlow | 8 | Training framework (Python API → C++ kernels) |
-| llama.cpp | 5 | LLM inference engine |
-| ollama | 5 | LLM inference server |
-| OpenCV | 5 | Computer vision library |
-| ONNX / ONNX Runtime | 4 | Model format & inference framework |
-| PyTorch | 4 | Training framework |
-| whisper.cpp | 4 | Speech recognition engine |
-
-Severity distribution: 3 CRITICAL, 25 HIGH, 7 MEDIUM. PoC coverage:
-30 of 35 cases have a public PoC (18 inline, 12 by external link); see
-[`POC_COVERAGE.md`](POC_COVERAGE.md) for the breakdown.
-
-By trigger pattern (`triggerable_class`): 14 `python_api`, 10 `cli_binary`,
-7 `server`, 4 `library_link`.
-
 ## Repository layout
 
 ```
 UIUC-CS598-bench/
 ├── index.yaml              # master index — one row per (project, vuln)
-├── POC_COVERAGE.md         # PoC coverage summary
-├── METADATA_TODO.md        # known fix_commit metadata gaps
-├── validation_report.md    # auto-generated per-instance validation log
 ├── projects/
 │   └── <project>/
 │       ├── project.yaml    # project metadata + build prerequisites
@@ -127,7 +104,7 @@ Every `instances/<project>.<id>/` records, at a minimum:
   the harness output to decide whether the PoV triggered the **intended**
   vulnerability rather than an unrelated crash.
 - `validation_status`: ground-truth label, one of `validated`,
-  `invalidated_no_poc`, `invalidated_poc_failed`, `pending`.
+  `invalidated_no_poc`, `invalidated_poc_failed`.
 
 ## Validation workflow
 
@@ -148,8 +125,7 @@ Construction proceeds in three stages.
    ```
    The script checks out `base_commit`, runs `build_sh_sanitizer`, executes
    `harness_command` against the PoC, compares output to
-   `expected_fingerprint`, writes back `validation_status`, and appends a row
-   to `validation_report.md`.
+   `expected_fingerprint`, and writes back `validation_status`.
 
 For cases without a public PoC, the environment is still built and the
 instance is labelled `invalidated_no_poc` so consumers know the build
@@ -179,46 +155,26 @@ bash scripts/validate_all.sh
 ## Schema
 
 - `schema/vuln.schema.yaml` — annotated reference for editorial fields under
-  `projects/<project>/vulns/`. Includes the recently added
-  build/trigger/validation fields (`triggerable_class`,
-  `build_sh_sanitizer`, `build_sh_cov`, `harness_command`,
-  `expected_fingerprint`, `vuln_location`, `validation_status`, etc.).
+  `projects/<project>/vulns/`.
 - `schema/instance.schema.json` — JSON Schema (draft 2020-12) enforcing the
   shape of every `instance.json`. Used by
   `scripts/validate_instance_schema.py`.
 
 ## Status
 
-The benchmark is under active construction. As of 2026-05-03 (late):
+**25 runnable instances** across 6 projects (llama.cpp, whisper.cpp, opencv,
+ncnn, onnx, tensorflow): **20 `validated`** (canonical sanitizer / abort
+trace reproduced) + **5 `invalidated_no_poc`** (env builds cleanly, no
+public PoC). The editorial layer under `projects/<proj>/vulns/` catalogues
+45 vulnerabilities across 8 projects in total (ollama and pytorch are
+catalogued but not yet built).
 
-- **35 vulnerabilities catalogued** (editorial layer complete) plus 5
-  new instances built directly from upstream issue trackers (ncnn ×2,
-  tensorflow ×1, onnx ×2) for project breadth.
-- **28 instances scaffolded**, of which **20 `validated`** (live ASAN /
-  UBSan / abort traces matched), **5 `invalidated_no_poc`** (env builds
-  cleanly but no public PoC available), and **3 `pending`** (heavy
-  builds deferred — onnxruntime, opencv-1, pytorch).
-- **Project coverage** of *ready* (validated + no_poc) instances spans
-  **6 of 7 catalogued projects + 1 added**: llama.cpp ×12, whisper.cpp
-  ×4, opencv ×4, ncnn ×2, onnx ×2, tensorflow ×1.  ollama remains
-  uncovered; pytorch / onnxruntime have one pending each.
-- **Trigger-class diversity** of validated cases: 7 `cli_binary`,
-  10 `library_link`, 2 `python_api`, 1 `server` (3 RPC reused from
-  llama.cpp's harness chain).
-- Sanitizer fingerprint diversity: ASAN heap/global/stack-buffer-overflow,
-  ASAN allocation-size-too-big, ASAN bad-free, UBSan signed-conv /
-  null-deref / pointer-overflow, std::length_error abort, RPC server
-  assertion, and (for python_api class) string-match on leaked file
-  contents.
-
-### Ready instances (25 / 28)
+### Ready instances (25 / 25)
 
 `validated` = bench locally reproduced the canonical sanitizer / abort
 trace. `invalidated_no_poc` = env builds cleanly but no public PoC
 exists; build_sh + harness + vuln_location are usable for tools that
-generate their own PoVs from `vuln_location` alone. `pending` instances
-(heavy builds deferred) are excluded from the table; their editorial
-yaml under `projects/<proj>/vulns/` is retained as future work.
+generate their own PoVs from `vuln_location` alone.
 
 | project | instance_id | class | status | fingerprint hint |
 |---|---|---|---|---|
@@ -247,11 +203,3 @@ yaml under `projects/<proj>/vulns/` is retained as future work.
 | whisper.cpp | `whisper.cpp.GHSA-ggml-2025-parser` | library_link | validated | UBSan `index 5 out of bounds for type 'uint64_t [4]'` in `gguf_init_from_file` |
 | whisper.cpp | `whisper.cpp.TALOS-2024-1914` | library_link | validated | ASAN heap-buffer-overflow in `gguf_fread_str` |
 | whisper.cpp | `whisper.cpp.TALOS-2024-1914B` | cli_binary | invalidated_no_poc | env ready; whisper_full_parallel refactored, no compatible PoC; needs >30 min audio + specific `-p` |
-
-Pending (excluded from the table): `onnx.ORT-2024-HIDDENLAYER`,
-`opencv.CVE-2025-53644`, `pytorch.CVE-2024-31583`. Each retains its
-editorial yaml under `projects/<project>/vulns/`; build/harness
-artefacts will be added when scope permits.
-
-- Known editorial gaps in `fix_commit` metadata are tracked in
-  [`METADATA_TODO.md`](METADATA_TODO.md).

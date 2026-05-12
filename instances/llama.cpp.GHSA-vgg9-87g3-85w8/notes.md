@@ -32,7 +32,7 @@ unrelated to int overflow.
 Real fix: PR #14595 = commit `26a48ad699d50b6268900062661bd22f3e792579`
 (2025-07-09, "ggml : prevent integer overflow in gguf tensor size
 calculation"). Vulnerable commit (parent) =
-`ffd59e7d18a76459d5c31ba97073c7c9d73cb752`. See METADATA_TODO.md.
+`ffd59e7d18a76459d5c31ba97073c7c9d73cb752`.
 
 ## triggerable_class change
 

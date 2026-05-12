@@ -131,11 +131,8 @@ TRIG_CLASS = {
     "TALOS-2024-1914B": "cli_binary",
     "CVE-2019-5063": "cli_binary",
     "CVE-2019-5064": "cli_binary",
-    "CVE-2025-53644": "cli_binary",
     "CVE-2023-2617": "library_link",
     "CVE-2023-2618": "library_link",
-    "ORT-2024-HIDDENLAYER": "library_link",
-    "CVE-2024-31583": "library_link",
 }
 
 FIRST_TIER = sorted(k for k, v in TRIG_CLASS.items() if v in ("cli_binary", "library_link"))
@@ -160,7 +157,7 @@ def main():
 
         vuln_commit = (d.get("vulnerable_commit") or "").strip()
         if not vuln_commit:
-            vuln_commit = "TODO_see_METADATA_TODO_md"
+            vuln_commit = "TODO_set_vulnerable_commit"
 
         inst = {
             "instance_id": f"{proj}.{vid}",
@@ -176,7 +173,7 @@ def main():
             "expected_fingerprint": "",
             "triggerable_class": TRIG_CLASS[vid],
             "validation_status": "pending",
-            "validation_notes": "stub — see METADATA_TODO.md and notes.md | vuln_location placeholder line=1, replace with advisory line",
+            "validation_notes": "stub — see notes.md | vuln_location placeholder line=1, replace with advisory line",
         }
 
         out_dir = BENCH / "instances" / f"{proj}.{vid}"
@@ -204,7 +201,7 @@ def main():
                 f"## Status\n\n"
                 f"- triggerable_class: {TRIG_CLASS[vid]}\n"
                 f"- PoC: {poc_status}\n"
-                f"- vulnerable_commit: {'set' if d.get('vulnerable_commit') else 'TODO (see METADATA_TODO.md)'}\n\n"
+                f"- vulnerable_commit: {'set' if d.get('vulnerable_commit') else 'TODO'}\n\n"
                 f"## What this stub needs to become validated\n\n"
                 "1. Verify or fix the `fix_commit` field in the yaml (run `scripts/audit_fix_commits.py`).\n"
                 "2. Set `base_commit` in `instance.json` (run `scripts/derive_vuln_commit.py --apply`).\n"

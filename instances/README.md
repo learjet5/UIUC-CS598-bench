@@ -56,7 +56,5 @@ bench*. It can be one of:
 | `validated` | env builds + curated PoC triggers + sanitizer trace matches `expected_fingerprint` |
 | `invalidated_no_poc` | env builds, but no public PoC was found; case left in bench for completeness |
 | `invalidated_poc_failed` | env builds and a PoC was tried but it didn't trigger / triggered something else |
-| `pending` | not yet attempted |
 
-Update via `scripts/validate_instance.sh` (writes `instance.json::validation_status`
-+ appends a row to `validation_report.md`).
+Update via `scripts/validate_instance.sh` (writes `instance.json::validation_status`).

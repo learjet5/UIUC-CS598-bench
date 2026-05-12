@@ -44,5 +44,4 @@ exercise of the parser.
 
 `fix_commit` originally read "Multiple incremental ggml commits" — too vague
 to drive a checkout. Replaced with `8f5220d8` (synced from ggml/709,
-2024-01-29, "gguf : add input validation, prevent integer overflows"). See
-METADATA_TODO.md.
+2024-01-29, "gguf : add input validation, prevent integer overflows").

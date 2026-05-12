@@ -259,9 +259,9 @@ stats:
   total_projects: 8
   total_vulns: 45
   # Auto-derivable from `projects/<proj>/vulns/*.yaml` — keep in sync.
-  # Note: bench-runnable state (validated / invalidated_no_poc / pending) is
-  # tracked separately in `validation_summary.csv` and the README's "Ready
-  # instances" table — currently 25 / 28.
+  # Note: bench-runnable state (validated / invalidated_no_poc) is tracked
+  # separately in `validation_summary.csv` and the README's "Ready instances"
+  # table — currently 25 / 25.
   by_type:
     heap-buffer-overflow: 18
     out-of-bounds-read: 9

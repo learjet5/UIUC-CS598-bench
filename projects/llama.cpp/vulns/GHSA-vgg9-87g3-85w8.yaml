@@ -30,8 +30,7 @@ vulnerable_commit: "ffd59e7d18a76459d5c31ba97073c7c9d73cb752"
 # Note: yaml originally listed `b4057` as the fix_commit; that tag resolves to
 # commit 46323fa9 "metal : hide debug messages" — totally unrelated. The real
 # fix is PR #14595 (commit 26a48ad6, 2025-07-09), which adds the
-# SIZE_MAX-ctx->size overflow check in gguf_init_from_file_impl. See
-# METADATA_TODO.md.
+# SIZE_MAX-ctx->size overflow check in gguf_init_from_file_impl.
 github_advisory: GHSA-vgg9-87g3-85w8
 poc_available: true
 poc_link: "https://huggingface.co/yuuoniy/overflow/blob/main/generate_poc.c"

@@ -4,7 +4,7 @@
 
 - triggerable_class: cli_binary
 - PoC: MISSING (no PoC public)
-- vulnerable_commit: TODO (see METADATA_TODO.md)
+- vulnerable_commit: TODO
 
 ## What this stub needs to become validated
 
